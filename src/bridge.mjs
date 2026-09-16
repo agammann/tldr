@@ -23,7 +23,8 @@ export function loadPairing(directory, port = 43187) {
     return existing;
   } catch (error) { if (error.code !== 'ENOENT') throw error; }
   const pairing = { endpoint: `http://127.0.0.1:${port}`, token: randomBytes(32).toString('hex') };
-  writeFileSync(file, JSON.stringify(pairing, null, 2), { mode: 0o600, flag: 'wx' });
+  try { writeFileSync(file, JSON.stringify(pairing, null, 2), { mode: 0o600, flag: 'wx' }); }
+  catch (error) { if (error.code === 'EEXIST') return loadPairing(directory, port); throw error; }
   return pairing;
 }
 
@@ -31,6 +32,7 @@ export async function startBridge({ token, port = 43187 }) {
   let latest = null;
   const server = http.createServer((request, response) => {
     response.setHeader('Cache-Control', 'no-store');
+    response.setHeader('Connection', 'close');
     const host = request.headers.host;
     if (host !== `127.0.0.1:${server.address().port}`) { response.writeHead(403).end(); return; }
     const origin = request.headers.origin;
@@ -45,6 +47,11 @@ export async function startBridge({ token, port = 43187 }) {
     const expected = Buffer.from(`Bearer ${token}`);
     const supplied = Buffer.from(request.headers.authorization || '');
     if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) { response.writeHead(401).end(); return; }
+    // Other MCP sessions using the same pairing may read the in-memory snapshot.
+    if (request.url === '/capture' && request.method === 'GET' && !origin) {
+      response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ protocol: 'terms-tldr-bridge-v1', capture: latest }));
+      return;
+    }
     if (request.url !== '/capture' || request.method !== 'POST') { response.writeHead(404).end(); return; }
     if (!request.headers['content-type']?.startsWith('application/json')) { response.writeHead(415).end(); return; }
     let bytes = 0;
@@ -69,4 +76,44 @@ export async function startBridge({ token, port = 43187 }) {
   server.maxConnections = 10;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
   return { server, latest: () => latest };
+}
+
+export function sharedBridge({ token, port = 43187 }) {
+  let owned;
+  let pending;
+  let closed = false;
+  const ensureOwner = async () => {
+    if (owned || closed) return;
+    if (!pending) pending = startBridge({ token, port }).then(value => {
+      if (closed) value.server.close(); else owned = value;
+    }).catch(error => { if (error.code !== 'EADDRINUSE') throw error; }).finally(() => { pending = undefined; });
+    await pending;
+  };
+  return {
+    start: ensureOwner,
+    async latest() {
+      await ensureOwner();
+      if (closed) throw new Error('Browser bridge is closed.');
+      if (owned) return owned.latest();
+      const response = await fetch(`http://127.0.0.1:${port}/capture`, {
+        headers: { Authorization: `Bearer ${token}` },
+        redirect: 'error', signal: AbortSignal.timeout(5000)
+      });
+      if (!response.ok) {
+        await response.body?.cancel();
+        throw new Error('The capture port belongs to an incompatible bridge or a different pairing. Restart all Terms TLDR connections after updating.');
+      }
+      const chunks = [];
+      let size = 0;
+      for await (const chunk of response.body) {
+        size += chunk.length;
+        if (size > 1200000) throw new Error('Shared browser capture exceeds the response limit.');
+        chunks.push(chunk);
+      }
+      const value = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      if (value.protocol !== 'terms-tldr-bridge-v1') throw new Error('Incompatible browser capture bridge.');
+      return value.capture === null ? null : captureSchema.extend({ received_at: z.string().datetime() }).parse(value.capture);
+    },
+    async close() { closed = true; await pending; if (owned) await new Promise(resolve => owned.server.close(resolve)); }
+  };
 }

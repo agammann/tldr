@@ -6,11 +6,15 @@ import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { startBridge } from '../src/bridge.mjs';
 
 test('real stdio client discovers and invokes review, comparison, browser capture and prompt', async t => {
   const data = mkdtempSync(join(tmpdir(), 'terms-mcp-'));
+  const reservation = await startBridge({ token: 'b'.repeat(64), port: 0 });
+  const port = reservation.server.address().port;
+  await new Promise(resolve => reservation.server.close(resolve));
   const client = new Client({ name: 'terms-integration-test', version: '1.0.0' });
-  const transport = new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('../src/server.mjs', import.meta.url))], env: { ...process.env, TERMS_TLDR_DATA_DIR: data }, stderr: 'pipe' });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('../src/server.mjs', import.meta.url))], env: { ...process.env, TERMS_TLDR_DATA_DIR: data, TERMS_TLDR_BRIDGE_PORT: String(port) }, stderr: 'pipe' });
   t.after(() => client.close());
   await client.connect(transport);
   const names = (await client.listTools()).tools.map(t => t.name);
@@ -37,6 +41,13 @@ test('real stdio client discovers and invokes review, comparison, browser captur
   };
   await send(capture);
   assert.equal((await client.callTool({ name: 'review_current_page', arguments: {} })).structuredContent.changes.status, 'first_review');
+  const second = new Client({ name: 'another-conversation', version: '1.0.0' });
+  t.after(() => second.close());
+  await second.connect(new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('../src/server.mjs', import.meta.url))], env: { ...process.env, TERMS_TLDR_DATA_DIR: data, TERMS_TLDR_BRIDGE_PORT: String(port) }, stderr: 'pipe' }));
+  const shared = await second.callTool({ name: 'review_current_page', arguments: {} });
+  assert.ok(!shared.isError);
+  assert.equal(shared.structuredContent.changes.status, 'unchanged');
+  assert.equal(shared.structuredContent.source_clauses[0].text, capture.text);
   await send({ ...capture, text: 'You pay $24 per month.' });
   assert.equal((await client.callTool({ name: 'review_current_page', arguments: {} })).structuredContent.changes.status, 'text_changed');
   await send({ ...capture, text: 'partial', truncated: true });
