@@ -2,7 +2,7 @@
 
 Verified locally on September 15, 2026, with Node.js 24.19.0, MCP SDK 1.30.0, pnpm 11.19.0 and Playwright 1.62.1.
 
-The original checks below are retained as the initial verification record. A later fresh checkout and live page check found and corrected Windows line ending assumptions and the original 48,000 character limit. Current validation has 14 passing tests, six successful live URL reviews and three live browser captures. See [REAL_WORLD_VALIDATION.md](docs/REAL_WORLD_VALIDATION.md) for the current evidence and scope.
+The original checks and boundaries below are retained as the historical initial verification record. Current version 0.1.2 has 15 passing tests, six successful live URL reviews, live capture checks in Chrome and Edge, and a completed review from the user's normal Chrome profile through the installed Codex MCP. The multiple session bridge conflict found during host integration is fixed. All 92 clauses of the final Dropbox capture were retrieved across two source pages, and a repeat review of that snapshot reported unchanged. See [REAL_WORLD_VALIDATION.md](docs/REAL_WORLD_VALIDATION.md) for current evidence and scope; the older installation limitations below have been superseded there.
 
 ## Passed
 
