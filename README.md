@@ -45,6 +45,15 @@ Copy [mcp-config.example.json](mcp-config.example.json) into your assistant's MC
 
 This is a stdio client configuration, not a remotely hosted MCP URL. The included SDK client test verifies the protocol. Host specific installation and UI behavior must be checked in the assistant you choose.
 
+For Codex, register the server with an absolute path:
+
+```powershell
+codex mcp add terms-tldr -- node "C:\path\to\terms-tldr\src\server.mjs"
+codex mcp get terms-tldr
+```
+
+If Node is not on your PATH, replace `node` with the full path to `node.exe`. Codex starts the server when it connects. If the tools do not appear in an existing session, restart the client to reload its configuration. See the [official Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
+
 ## Connect the browser extension
 
 1. Start the MCP through your assistant.
@@ -115,7 +124,17 @@ Tests exercise clause preservation, negation and price changes, baseline state, 
 
 The browser smoke test opens a fresh temporary browser profile and uses a fictional page served on loopback. On Windows it defaults to Microsoft Edge. Set `BROWSER_EXECUTABLE` to use another extension capable Chromium executable. Other platforms use the Playwright default browser, which must be installed separately. Run browser and protocol tests sequentially because both exercise bridge port 43187. The smoke test does not alter your normal browser profile.
 
-For optional live checks, run `pnpm test:live` and then `pnpm test:live-browser`. These contact real public terms pages and can fail if providers change their sites or restrict access. The browser check uses an isolated Edge profile and the browser's extension action test API to exercise the activeTab permission grant on Dropbox, Spotify and GitHub. Its special extension debugging flag is restricted to that temporary test profile. Live evidence is saved under the ignored `.local` directory. Normal CI uses controlled fixtures on Windows and Linux with Node 22 and 24.
+For optional live checks, run `pnpm test:live` and then `pnpm test:live-browser`. These contact real public terms pages and can fail if providers change their sites or restrict access. The browser check uses an isolated browser profile and the browser's extension action test API to exercise the activeTab permission grant on Dropbox, Spotify and GitHub. Chrome and Edge have both passed this check. Its special extension debugging flag is restricted to that temporary test profile. Tests use `Extensions.loadUnpacked` because normal Google Chrome removed the old command line extension loading flag. Everyday installation still uses **Load unpacked** in the extensions manager. Live evidence is saved under the ignored `.local` directory. Normal CI uses controlled fixtures on Windows and Linux with Node 22 and 24.
+
+To select Google Chrome on Windows for either browser test:
+
+```powershell
+$env:BROWSER_EXECUTABLE = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+pnpm test:browser
+pnpm test:live-browser
+```
+
+Stop any connected Terms TLDR MCP before running browser or protocol tests, then reconnect afterward. They use the same local bridge port, so a running everyday instance will cause the test instance to fail browser capture.
 
 See [the real world validation report](docs/REAL_WORLD_VALIDATION.md) for the six live page results, browser permission checks, corrections and remaining limitations.
 

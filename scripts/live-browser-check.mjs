@@ -15,13 +15,9 @@ let context;
 try {
   await client.connect(transport);
   const executablePath = process.env.BROWSER_EXECUTABLE || (process.platform === 'win32' ? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' : undefined);
-  context = await chromium.launchPersistentContext(join(directory, 'browser'), { executablePath, headless: true, ignoreDefaultArgs: ['--disable-extensions'], args: ['--enable-unsafe-extension-debugging', `--disable-extensions-except=${join(root, 'extension')}`, `--load-extension=${join(root, 'extension')}`] });
-  const management = await context.newPage();
-  await management.goto('chrome://extensions');
-  await management.getByText('Terms TLDR', { exact: true }).waitFor();
-  await management.getByText('Details', { exact: true }).click();
-  await management.waitForURL(/id=/);
-  const id = new URL(management.url()).searchParams.get('id');
+  context = await chromium.launchPersistentContext(join(directory, 'browser'), { executablePath, headless: true, ignoreDefaultArgs: ['--disable-extensions'], args: ['--enable-unsafe-extension-debugging'] });
+  const browserCdp = await context.browser().newBrowserCDPSession();
+  const { id } = await browserCdp.send('Extensions.loadUnpacked', { path: join(root, 'extension') });
   assert.match(id, /^[a-p]{32}$/);
   const target = await context.newPage();
   await target.goto('https://www.dropbox.com/terms', {waitUntil:'domcontentloaded'});
@@ -37,7 +33,6 @@ try {
   assert.match(await popup.locator('#status').innerText(), /regular website|Cannot access|permission/i, 'Public page capture requires an extension action grant');
   const cdp = await context.newCDPSession(target);
   const {targetInfo} = await cdp.send('Target.getTargetInfo');
-  const browserCdp = await context.browser().newBrowserCDPSession();
   const {targetInfos} = await browserCdp.send('Target.getTargets', {filter:[{type:'tab',exclude:false}]});
   const browserTab = targetInfos.find(t => t.url === targetInfo.url);
   assert.ok(browserTab, 'Public website has a browser tab target');
@@ -73,7 +68,8 @@ try {
     await complete(report.structuredContent);
   }
   mkdirSync(join(root,'.local'),{recursive:true});
-  writeFileSync(join(root,'.local','live-browser-results.json'),JSON.stringify({permission_denied_before_action:true,real_action_grants_access:true,results},null,2));
+  const browserVersion = context.browser().version();
+  writeFileSync(join(root,'.local','live-browser-results.json'),JSON.stringify({browser_version:browserVersion,executable:executablePath,permission_denied_before_action:true,real_action_grants_access:true,results},null,2));
   await popup.setViewportSize({ width: 350, height: 730 });
-  console.log(JSON.stringify({permission_denied_before_action:true,real_action_grants_access:true,results}));
+  console.log(JSON.stringify({browser_version:browserVersion,permission_denied_before_action:true,real_action_grants_access:true,results}));
 } finally { await context?.close(); await client.close(); }

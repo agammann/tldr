@@ -19,13 +19,9 @@ let context;
 try {
   await client.connect(transport);
   const executablePath = process.env.BROWSER_EXECUTABLE || (process.platform === 'win32' ? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' : undefined);
-  context = await chromium.launchPersistentContext(join(directory, 'browser'), { executablePath, headless: true, ignoreDefaultArgs: ['--disable-extensions'], args: [`--disable-extensions-except=${join(root, 'extension')}`, `--load-extension=${join(root, 'extension')}`] });
-  const management = await context.newPage();
-  await management.goto('chrome://extensions');
-  await management.getByText('Terms TLDR', { exact: true }).waitFor();
-  await management.getByText('Details', { exact: true }).click();
-  await management.waitForURL(/id=/);
-  const id = new URL(management.url()).searchParams.get('id');
+  context = await chromium.launchPersistentContext(join(directory, 'browser'), { executablePath, headless: true, ignoreDefaultArgs: ['--disable-extensions'], args: ['--enable-unsafe-extension-debugging'] });
+  const browserCdp = await context.browser().newBrowserCDPSession();
+  const { id } = await browserCdp.send('Extensions.loadUnpacked', { path: join(root, 'extension') });
   assert.match(id, /^[a-p]{32}$/);
   const target = await context.newPage();
   await target.goto(`http://127.0.0.1:${web.address().port}/terms`);
