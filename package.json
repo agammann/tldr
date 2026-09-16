@@ -1,0 +1,29 @@
+{
+  "name": "terms-tldr-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "repository": { "type": "git", "url": "https://github.com/agammann/terms-tldr.git" },
+  "homepage": "https://github.com/agammann/terms-tldr#readme",
+  "bugs": { "url": "https://github.com/agammann/terms-tldr/issues" },
+  "type": "module",
+  "description": "Clause cited terms review for MCP assistants",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:browser": "node scripts/browser-smoke.mjs",
+    "demo": "node scripts/demo.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "ipaddr.js": "^2.2.0",
+    "linkedom": "^0.18.12",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

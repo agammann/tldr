@@ -1,0 +1,42 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+test('real stdio client discovers and invokes review, comparison, browser capture and prompt', async t => {
+  const data = mkdtempSync(join(tmpdir(), 'terms-mcp-'));
+  const client = new Client({ name: 'terms-integration-test', version: '1.0.0' });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('../src/server.mjs', import.meta.url))], env: { ...process.env, TERMS_TLDR_DATA_DIR: data }, stderr: 'pipe' });
+  t.after(() => client.close());
+  await client.connect(transport);
+  const names = (await client.listTools()).tools.map(t => t.name);
+  assert.deepEqual(names.sort(), ['review_terms_text', 'review_terms_url', 'review_current_page', 'compare_terms_text'].sort());
+  const result = await client.callTool({ name: 'review_terms_text', arguments: { text: 'You pay $12 per month. Cancel anytime.' } });
+  assert.equal(result.structuredContent.document.clause_count, 1);
+  const absent = await client.callTool({ name: 'review_current_page', arguments: {} });
+  assert.equal(absent.isError, true);
+  const pairing = JSON.parse(readFileSync(join(data, 'pairing.json'), 'utf8'));
+  const capture = { url: 'https://example.com/terms', title: 'Fictional', text: 'You pay $12 per month.', links: [], captured_at: new Date().toISOString(), truncated: false, selection: false };
+  const send = async value => {
+    const response = await fetch(`${pairing.endpoint}/capture`, { method: 'POST', headers: { Authorization: `Bearer ${pairing.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(value) });
+    assert.equal(response.status, 200);
+  };
+  await send(capture);
+  assert.equal((await client.callTool({ name: 'review_current_page', arguments: {} })).structuredContent.changes.status, 'first_review');
+  await send({ ...capture, text: 'You pay $24 per month.' });
+  assert.equal((await client.callTool({ name: 'review_current_page', arguments: {} })).structuredContent.changes.status, 'text_changed');
+  await send({ ...capture, text: 'partial', truncated: true });
+  assert.equal((await client.callTool({ name: 'review_current_page', arguments: {} })).structuredContent.changes.status, 'comparison_skipped_partial_capture');
+  await send({ ...capture, text: 'You pay $24 per month.' });
+  assert.equal((await client.callTool({ name: 'review_current_page', arguments: {} })).structuredContent.changes.status, 'unchanged');
+  const comparison = await client.callTool({ name: 'compare_terms_text', arguments: { before: '$12 per month', after: '$24 per month' } });
+  assert.equal(comparison.structuredContent.changes.status, 'text_changed');
+  const blocked = await client.callTool({ name: 'review_terms_url', arguments: { url: 'https://127.0.0.1' } });
+  assert.equal(blocked.isError, true);
+  const prompt = await client.getPrompt({ name: 'before_you_agree', arguments: {} });
+  assert.match(prompt.messages[0].content.text, /review_current_page/);
+});

@@ -1,0 +1,15 @@
+FICTIONAL DEMO: CloudNotebook subscription terms
+
+Your subscription costs $12 per month after a 14 day free trial. It renews automatically until you cancel. Cancel at least 24 hours before the next billing date to avoid the next charge.
+
+You may cancel through Account Settings. Cancellation takes effect at the end of the current billing period. Fees already paid are nonrefundable except where required by applicable law.
+
+You own your uploaded notes. You grant us a nonexclusive license to store and display your notes solely to provide the service. This license ends when your notes are deleted. We do not use your notes to train AI models.
+
+We share account and payment information with service providers needed to operate the service. Our separate Privacy Policy explains retention periods and other uses of personal information.
+
+Disputes must be resolved by individual arbitration, except claims eligible for small claims court. You waive participation in class actions. You may opt out of arbitration by emailing the address shown in your signup confirmation within 30 days of account creation.
+
+To the extent permitted by applicable law, our total liability is limited to the fees you paid during the previous three months. This limit does not apply where the law prohibits it.
+
+We may change these terms with 30 days notice by email. You may cancel before the changes take effect.

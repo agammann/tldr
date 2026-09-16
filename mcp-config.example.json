@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "terms-tldr": {
+      "command": "node",
+      "args": ["/absolute/path/to/terms-tldr/src/server.mjs"]
+    }
+  }
+}
