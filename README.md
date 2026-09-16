@@ -1,5 +1,9 @@
 # Terms TLDR
 
+**[Visit the public website](https://terms-tldr.alx21.chatgpt.site)** · [Interactive example](https://terms-tldr.alx21.chatgpt.site/#example) · [Installation guide](https://terms-tldr.alx21.chatgpt.site/#install)
+
+The website is publicly hosted on OpenAI Sites. Visitors can explore a fictional review and follow the installation guide without running a local web server. Reviewing their own browser pages uses the local extension and MCP described below. The website does not accept terms submissions or run AI reviews.
+
 A local MCP and browser extension for the question: **What am I agreeing to, what changed, and what should I look closely at?**
 
 The extension captures the page you choose. The MCP supplies cited clauses, policy links and differences from the last saved copy. Your connected AI assistant writes the short explanation. The server does not call a separate model provider or require an API key.

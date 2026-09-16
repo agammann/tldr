@@ -1,0 +1,34 @@
+const clauses = [
+  ['C0001','Scope','These fictional terms apply to the CloudNotebook personal plan. A separate Privacy Policy also applies; it is not included in this example.'],
+  ['C0002','Trial and payment','Your trial lasts 14 days. After the trial, your subscription automatically renews at $12 each month. Cancel at least 24 hours before billing to avoid the next charge.'],
+  ['C0003','Cancellation and refunds','Cancel through Account Settings. Paid fees are nonrefundable, except where a refund is required by law.'],
+  ['C0004','Your notes','You keep ownership of your notes. You give us a limited license to store and process them to operate the service. We do not use your notes to train AI models.'],
+  ['C0005','Changes','We will email you at least 30 days before a price increase takes effect. You may cancel before the new price applies.'],
+  ['C0006','Disputes','Disputes must be resolved by individual arbitration, except claims eligible for small claims court. You waive participation in class actions. You may opt out of arbitration within 30 days of creating your account by emailing our support team.'],
+  ['C0007','Liability','Our liability is limited to the fees you paid during the previous three months, except liability that cannot be limited by law.']
+];
+const views = {
+ summary:{label:'Five takeaways from the current fictional agreement.',items:[
+  ['Know when the trial becomes a bill.','After 14 days, the plan renews at $12 each month. Cancel at least 24 hours before billing to avoid the next charge.',['C0002']],
+  ['You can cancel. Refunds have limits.','Use Account Settings to cancel. Paid fees are generally nonrefundable, with an exception where law requires a refund.',['C0003']],
+  ['Your notes stay yours.','The service gets a limited operating license. These terms explicitly say it does not train AI models on your notes.',['C0004']],
+  ['There is an arbitration opt out.','Individual arbitration and a class action waiver apply. Small claims cases are excepted, and you can opt out of arbitration within 30 days of account creation.',['C0006']],
+  ['Liability is capped.','The general cap is three months of paid fees, with an exception for liability that cannot legally be limited.',['C0007']]
+ ]},
+ changes:{label:'Illustrative comparison with an earlier fictional version. The example is predefined, not a live website comparison.',items:[
+  ['The monthly price doubled.','The earlier sample charged $6. The current sample charges $12. The 14 day trial and 24 hour cancellation cutoff stay the same.',['C0002'],'Monthly subscription: <del>$6</del> → <ins>$12</ins>'],
+  ['An AI training permission was removed.','The earlier sample allowed using notes to train AI models. The current wording explicitly says the service does not do that.',['C0004'],'Earlier: “We may use your notes to train AI models.”<br>Current: “We do not use your notes to train AI models.”'],
+  ['Other sample clauses are unchanged.','Cancellation, advance price notice, arbitration and liability keep the same wording in these two examples. A first real review has no earlier baseline.',['C0003','C0005','C0006','C0007']]
+ ]},
+ flags:{label:'Clauses to inspect, with qualifications. These are not findings that the terms are illegal or unsafe.',items:[
+  ['Automatic renewal has a cutoff.','Stopping use does not cancel billing. If you do not want another charge, use the cancellation method before the stated cutoff.',['C0002','C0003']],
+  ['Dispute options are restricted.','The arbitration and class action provisions may matter if you have a dispute. The small claims exception and 30 day opt out are important qualifications.',['C0006']],
+  ['Recovery may be limited.','The liability cap could limit what you recover. The clause preserves liability that cannot legally be limited.',['C0007']],
+  ['One linked policy is missing.','The Privacy Policy is referenced but not supplied here. This example cannot establish the agreement’s full data practices or suitability for your location and plan.',['C0001']]
+ ]}
+};
+const source=document.getElementById('source-list');
+for(const [id,title,text] of clauses){const detail=document.createElement('details');detail.className='clause';detail.id=id;detail.tabIndex=-1;const summary=document.createElement('summary');summary.textContent=id+' · '+title;const p=document.createElement('p');p.textContent=text;detail.append(summary,p);source.append(detail);}
+function render(view){const selected=views[view];document.querySelectorAll('[data-view]').forEach(tab=>{const active=tab.dataset.view===view;tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;});const panel=document.getElementById('review-panel');panel.setAttribute('aria-labelledby','tab-'+view);panel.replaceChildren();const label=document.createElement('p');label.className='view-label';label.textContent=selected.label;panel.append(label);selected.items.forEach(([title,body,refs,diff],i)=>{const article=document.createElement('article');article.className='point';const n=document.createElement('span');n.className='point-num';n.textContent=String(i+1);const content=document.createElement('div');const h=document.createElement('h3');h.textContent=title;const p=document.createElement('p');p.textContent=body;content.append(h,p);if(diff){const d=document.createElement('p');d.className='diff';d.innerHTML=diff;content.append(d);}for(const ref of refs){const b=document.createElement('button');b.className='cite';b.textContent='['+ref+']';b.setAttribute('aria-label','Read clause '+ref);b.addEventListener('click',()=>{const detail=document.getElementById(ref);detail.open=true;detail.focus({preventScroll:true});detail.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'nearest'});});content.append(b);}article.append(n,content);panel.append(article);});}
+const tabs=[...document.querySelectorAll('[data-view]')];tabs.forEach((tab,index)=>{tab.addEventListener('click',()=>render(tab.dataset.view));tab.addEventListener('keydown',event=>{let next;if(event.key==='ArrowRight')next=(index+1)%tabs.length;if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=tabs.length-1;if(next!==undefined){event.preventDefault();render(tabs[next].dataset.view);tabs[next].focus();}});});
+let copyTimer;document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',async()=>{const text=document.getElementById(button.dataset.copy).textContent;const status=document.getElementById('copy-status');try{await navigator.clipboard.writeText(text);status.textContent='Copied to clipboard.';}catch{status.textContent='Clipboard unavailable. Select the text and copy it manually.';}clearTimeout(copyTimer);copyTimer=setTimeout(()=>status.textContent='',4000);}));render('summary');
