@@ -14,7 +14,7 @@ test('real stdio client discovers and invokes review, comparison, browser captur
   const port = reservation.server.address().port;
   await new Promise(resolve => reservation.server.close(resolve));
   const client = new Client({ name: 'terms-integration-test', version: '1.0.0' });
-  const transport = new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('../src/server.mjs', import.meta.url))], env: { ...process.env, TERMS_TLDR_DATA_DIR: data, TERMS_TLDR_BRIDGE_PORT: String(port) }, stderr: 'pipe' });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('../src/server.mjs', import.meta.url))], env: { ...process.env, TLDR_DATA_DIR: data, TLDR_BRIDGE_PORT: String(port) }, stderr: 'pipe' });
   t.after(() => client.close());
   await client.connect(transport);
   const names = (await client.listTools()).tools.map(t => t.name);

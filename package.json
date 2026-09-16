@@ -1,11 +1,16 @@
 {
-  "name": "terms-tldr-mcp",
-  "version": "0.1.2",
+  "name": "tldr-mcp",
+  "version": "0.1.3",
   "private": true,
   "packageManager": "pnpm@11.19.0",
-  "repository": { "type": "git", "url": "https://github.com/agammann/terms-tldr.git" },
-  "homepage": "https://github.com/agammann/terms-tldr#readme",
-  "bugs": { "url": "https://github.com/agammann/terms-tldr/issues" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agammann/tldr.git"
+  },
+  "homepage": "https://terms-tldr.alx21.chatgpt.site",
+  "bugs": {
+    "url": "https://github.com/agammann/tldr/issues"
+  },
   "type": "module",
   "description": "Clause cited terms review for MCP assistants",
   "engines": {

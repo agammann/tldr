@@ -1,4 +1,4 @@
-# Terms TLDR
+# tldr
 
 **[Visit the public website](https://terms-tldr.alx21.chatgpt.site)** · [Interactive example](https://terms-tldr.alx21.chatgpt.site/#example) · [Installation guide](https://terms-tldr.alx21.chatgpt.site/#install)
 
@@ -25,8 +25,8 @@ A first review explicitly reports that no prior copy exists. This is comparison 
 Requires Node.js 22 or later and pnpm 11.19.0.
 
 ```powershell
-git clone https://github.com/agammann/terms-tldr.git
-cd terms-tldr
+git clone https://github.com/agammann/tldr.git
+cd tldr
 pnpm install --frozen-lockfile
 pnpm test
 pnpm start
@@ -39,9 +39,9 @@ Copy [mcp-config.example.json](mcp-config.example.json) into your assistant's MC
 ```json
 {
   "mcpServers": {
-    "terms-tldr": {
+    "tldr": {
       "command": "node",
-      "args": ["/absolute/path/to/terms-tldr/src/server.mjs"]
+      "args": ["/absolute/path/to/tldr/src/server.mjs"]
     }
   }
 }
@@ -52,8 +52,8 @@ This is a stdio client configuration, not a remotely hosted MCP URL. The include
 For Codex, register the server with an absolute path:
 
 ```powershell
-codex mcp add terms-tldr -- node "C:\path\to\terms-tldr\src\server.mjs"
-codex mcp get terms-tldr
+codex mcp add tldr -- node "C:\path\to\tldr\src\server.mjs"
+codex mcp get tldr
 ```
 
 If Node is not on your PATH, replace `node` with the full path to `node.exe`. Codex starts the server when it connects. If the tools do not appear in an existing session, restart the client to reload its configuration. See the [official Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
@@ -100,7 +100,7 @@ It should also say that the separate Privacy Policy was not supplied and that no
 
 Page captures remain in MCP process memory until replaced or the process exits. Complete pages that you ask the MCP to review become local plaintext baselines in `.local/history.json`. The latest reviewed copy replaces the previous baseline; at most 30 URLs are retained. URL keys include query strings, which may contain account information. Avoid capturing personal pages unnecessarily.
 
-The browser pairing token is saved in `.local/pairing.json` and in extension local storage, restricted to trusted extension contexts. The bridge listens only on `127.0.0.1:43187`, requires the token, checks the HTTP Host, and rejects ordinary website Origins. One MCP instance owns the bridge port; other conversations using the same pairing read its snapshot through an authenticated local request. The latest explicit capture is shared across those conversations. A different pairing cannot read it. When the owner exits, a subsequent review can start a replacement bridge; the lost RAM snapshot must be captured again. Restart all Terms TLDR connections after upgrading an older single instance version.
+The browser pairing token is saved in `.local/pairing.json` and in extension local storage, restricted to trusted extension contexts. The bridge listens only on `127.0.0.1:43187`, requires the token, checks the HTTP Host, and rejects ordinary website Origins. One MCP instance owns the bridge port; other conversations using the same pairing read its snapshot through an authenticated local request. The latest explicit capture is shared across those conversations. A different pairing cannot read it. When the owner exits, a subsequent review can start a replacement bridge; the lost RAM snapshot must be captured again. Restart all tldr connections after upgrading an older single instance version.
 
 Your AI host receives the source text when it invokes a tool. Its own data policies therefore apply. Local operation does not mean the assistant's model runs locally. The URL tool contacts the requested website without browser cookies or login credentials. No telemetry or analytics is implemented.
 
@@ -138,12 +138,16 @@ pnpm test:browser
 pnpm test:live-browser
 ```
 
-Stop any connected Terms TLDR MCP before running browser tests, then reconnect afterward. Those tests use a separate pairing on the same local bridge port and intentionally cannot read the everyday capture. Protocol tests choose a separate available port using the internal `TERMS_TLDR_BRIDGE_PORT` setting, so `pnpm test` can run while your everyday MCP is connected. Keep the default port for normal extension setup.
+Stop any connected tldr MCP before running browser tests, then reconnect afterward. Those tests use a separate pairing on the same local bridge port and intentionally cannot read the everyday capture. Protocol tests choose a separate available port using the internal `TLDR_BRIDGE_PORT` setting, so `pnpm test` can run while your everyday MCP is connected. Keep the default port for normal extension setup.
 
 See [the real world validation report](docs/REAL_WORLD_VALIDATION.md) for the six live page results, browser permission checks, corrections and remaining limitations.
 
 [VERIFICATION.md](VERIFICATION.md) records the checks actually performed and the remaining boundaries.
 
-The source repository is public at [agammann/terms-tldr](https://github.com/agammann/terms-tldr). The MCP runs locally; it is not a hosted service or a published browser store extension. No project redistribution license has been assigned. Dependency licenses remain their respective authors' licenses. The package's `private` flag prevents accidental npm publication and does not describe GitHub visibility.
+The source repository is public at [agammann/tldr](https://github.com/agammann/tldr). The MCP runs locally; it is not a hosted service or a published browser store extension. No project redistribution license has been assigned. Dependency licenses remain their respective authors' licenses. The package's `private` flag prevents accidental npm publication and does not describe GitHub visibility.
 
 Implementation references: [MCP SDK server documentation](https://ts.sdk.modelcontextprotocol.io/server), [Chrome activeTab](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab), [Chrome scripting API](https://developer.chrome.com/docs/extensions/reference/api/scripting), and [extension network requests](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests).
+
+## Naming and existing installations
+
+The product is now **tldr**. Existing local folders and browser pairing files remain valid. Reload the unpacked extension to show the new name, and reconnect the MCP to load version 0.1.3. New configurations use the server label `tldr`. The older environment variable names and internal bridge protocol remain supported so an existing installation does not lose access to its capture or history. The public Sites address remains [terms-tldr.alx21.chatgpt.site](https://terms-tldr.alx21.chatgpt.site).

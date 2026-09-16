@@ -1,4 +1,4 @@
-name: Verify Terms TLDR
+name: Verify tldr
 on:
   push:
   pull_request:

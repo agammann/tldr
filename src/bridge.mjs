@@ -101,7 +101,7 @@ export function sharedBridge({ token, port = 43187 }) {
       });
       if (!response.ok) {
         await response.body?.cancel();
-        throw new Error('The capture port belongs to an incompatible bridge or a different pairing. Restart all Terms TLDR connections after updating.');
+        throw new Error('The capture port belongs to an incompatible bridge or a different pairing. Restart all tldr connections after updating.');
       }
       const chunks = [];
       let size = 0;

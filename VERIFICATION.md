@@ -24,3 +24,7 @@ The full path from extension to MCP was exercised with fictional terms. No legal
 The project has not been connected to the user's everyday assistant or browser profile, published to a registry or extension store, or deployed as a hosted service. There is no background monitoring, universal signup interception, PDF ingestion, or agreement acceptance automation.
 
 The included [MCP configuration example](mcp-config.example.json) and [setup guide](README.md) are ready for local installation. Machine specific configuration, captured pages, local pairing tokens and review history are excluded from the public repository.
+
+## tldr rename and website redesign
+
+September 16, 2026 UTC: renamed product displays, extension manifest, MCP server identity, package metadata, setup examples and GitHub repository to tldr. MCP version 0.1.3 and extension version 0.1.2. All 15 controlled tests passed, including a connection using TLDR environment settings and a second connection using the compatible legacy settings. Website syntax, local asset references, internal anchors and example configuration JSON passed static checks. This redesign did not repeat the earlier browser visual checks. Existing pairing, history, local install paths and bridge protocol remain compatible.
