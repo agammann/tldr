@@ -28,7 +28,7 @@ button.addEventListener('click', async () => {
         .filter(a => /\b(terms|conditions|privacy|agreement|legal|policy)\b/i.test(`${a.textContent} ${a.getAttribute('href')}`))
         .filter(a => /^https?:\/\//.test(a.href) && a.href.length <= 2048)
         .slice(0, 40).map(a => ({ label: a.textContent.trim().slice(0, 200), url: a.href }));
-      return { url: location.href, title: document.title.slice(0, 300), text: raw.slice(0, 48000), links, captured_at: new Date().toISOString(), truncated: raw.length > 48000, selection: !!selection };
+      return { url: location.href, title: document.title.slice(0, 300), text: raw.slice(0, 160000), links, captured_at: new Date().toISOString(), truncated: raw.length > 160000, selection: !!selection };
     } });
     const response = await fetch(`${pairing.endpoint}/capture`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${pairing.token}` }, body: JSON.stringify(capture), signal: AbortSignal.timeout(5000) });
     if (!response.ok) throw new Error(`Capture failed (${response.status}). Check pairing and restart your MCP.`);

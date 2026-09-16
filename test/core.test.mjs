@@ -11,7 +11,7 @@ import { startBridge, loadPairing } from '../src/bridge.mjs';
 const fixture = readFileSync(new URL('../examples/fictional-terms.txt', import.meta.url), 'utf8');
 test('all terms and exceptions are preserved in cited evidence', () => {
   const report = reviewText(fixture);
-  assert.equal(report.source_clauses.map(c => c.text).join('\n\n'), fixture.trim());
+  assert.equal(report.source_clauses.map(c => c.text).join('\n\n'), fixture.replace(/\r\n?/g, '\n').trim());
   assert.ok(report.source_clauses.find(c => c.text.includes('We do not use your notes')));
   assert.ok(report.source_clauses.find(c => c.text.includes('except claims eligible')));
   for (const topic of report.topic_index) for (const id of topic.clause_ids) assert.ok(report.source_clauses.find(c => c.id === id));

@@ -9,7 +9,7 @@ The extension captures the page you choose. The MCP supplies cited clauses, poli
 1. Capture the current browser page after an explicit click, or just its selected text.
 2. Discover candidate terms, privacy and policy links on that page.
 3. Fetch public HTTPS terms pages, or accept pasted text.
-4. Return every supplied/extracted clause with a stable ID within that review.
+4. Return every supplied/extracted clause with a stable ID within that review. Long reviews use numbered pages so the assistant can retrieve the complete text.
 5. Highlight navigation hints for payments, cancellation, data use, content rights, disputes, liability, changes and governing law.
 6. Save the latest reviewed text for up to 30 exact URLs and compare the next review with that baseline.
 7. Ask the assistant to explain important changes and possible red flags with source citations and relevant exceptions.
@@ -67,8 +67,9 @@ The registered `before_you_agree` MCP prompt performs this same workflow. It als
 | `review_terms_url` | Fetch an HTML or plain text page and compare it with the previous copy for the same final URL. |
 | `review_terms_text` | Review pasted text without saving it to history. |
 | `compare_terms_text` | Compare two explicitly supplied copies without saving them. |
+| `read_review_page` | Retrieve the remaining current or removed clauses from a long review without advancing history. |
 
-The MCP returns evidence, not a generated legal opinion. Its topic index uses English keyword matching. The assistant must read all clauses, retain negations and exceptions, explain uncertainty, and avoid declaring an agreement safe or enforceable. A missed keyword is not proof that a provision is absent.
+The MCP returns evidence, not a generated legal opinion. Its topic index uses English keyword matching. The assistant must read all clauses and all returned pages, retain negations and exceptions, explain uncertainty, and avoid declaring an agreement safe or enforceable. A missed keyword is not proof that a provision is absent. If a host cannot retrieve the remaining pages, its answer must be labeled partial. Page snapshots are kept in memory for 20 minutes, with at most eight reviews retained.
 
 ## What the answer should look like
 
@@ -94,10 +95,10 @@ To erase saved terms, stop the MCP and delete `.local/history.json`. To reset pa
 
 ## Limits
 
-1. Public URL fetching supports static UTF8 HTML and plain text, with a 1 MiB response cap, 48,000 character extracted text cap, 15 second timeout and at most three redirects. Every destination is checked; DNS results are pinned for the request.
+1. Public URL fetching supports static UTF8 HTML and plain text, with a 1 MiB response cap, 160,000 character extracted text cap, 15 second timeout and at most three redirects. Every destination is checked; DNS results are pinned for the request.
 2. PDF extraction, OCR, inaccessible frames, shadow DOM content, and interaction with agreement buttons are outside this version. Dynamic or authenticated terms should be opened and captured in the browser.
-3. Captures beyond 48,000 characters are explicitly partial. Selected text is also partial. Neither replaces a full page baseline.
-4. Page text can include navigation and footer content. Differences may reflect formatting, localization, plan, account or navigation changes. The tool does not claim every detected change alters the agreement.
+3. Captures beyond 160,000 characters are explicitly partial. Selected text is also partial. Neither replaces a full page baseline.
+4. Page text can include navigation and footer content. Differences may reflect formatting, localization, plan, account or navigation changes. The tool does not claim every detected change alters the agreement. Switching between browser capture and URL extraction starts a new baseline and is explicitly labeled as a capture method change.
 5. Linked policies are listed, not automatically fetched. Completeness of the agreement and correspondence with the exact signup flow remain unverified.
 6. Source text can contain malicious instructions. Server prompts tell the assistant to treat it as untrusted evidence; this is not a guarantee against model prompt injection.
 7. Semantic summarization and red flag judgment belong to the connected model. The automated tests verify capture, evidence, comparison and MCP behavior; they do not establish legal accuracy.
@@ -113,6 +114,10 @@ pnpm test:browser
 Tests exercise clause preservation, negation and price changes, baseline state, partial capture behavior, private address rejection, HTML extraction, bridge authentication and real MCP stdio calls. `pnpm demo` uses fictional terms and prints the exact evidence returned through the SDK client.
 
 The browser smoke test opens a fresh temporary browser profile and uses a fictional page served on loopback. On Windows it defaults to Microsoft Edge. Set `BROWSER_EXECUTABLE` to use another extension capable Chromium executable. Other platforms use the Playwright default browser, which must be installed separately. Run browser and protocol tests sequentially because both exercise bridge port 43187. The smoke test does not alter your normal browser profile.
+
+For optional live checks, run `pnpm test:live` and then `pnpm test:live-browser`. These contact real public terms pages and can fail if providers change their sites or restrict access. The browser check uses an isolated Edge profile and the browser's extension action test API to exercise the activeTab permission grant on Dropbox, Spotify and GitHub. Its special extension debugging flag is restricted to that temporary test profile. Live evidence is saved under the ignored `.local` directory. Normal CI uses controlled fixtures on Windows and Linux with Node 22 and 24.
+
+See [the real world validation report](docs/REAL_WORLD_VALIDATION.md) for the six live page results, browser permission checks, corrections and remaining limitations.
 
 [VERIFICATION.md](VERIFICATION.md) records the checks actually performed and the remaining boundaries.
 

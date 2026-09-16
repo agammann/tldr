@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Terms TLDR",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Send the page you choose to your local terms review MCP.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["http://127.0.0.1/*"],

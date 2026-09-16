@@ -29,9 +29,11 @@ export class History {
     let records = {};
     try { records = JSON.parse(readFileSync(file, 'utf8')); } catch (e) { if (e.code !== 'ENOENT') throw new Error('Saved history could not be read. Preserve it and repair the file before comparing.'); }
     const previous = records[key];
-    report.changes = previous ? { ...compareTexts(previous.text, text), baseline_saved_at: previous.saved_at, baseline_url: previous.url } : { status: 'first_review', interpretation: 'No previous copy exists for this exact URL. This review creates the baseline; changes cannot yet be assessed.' };
+    report.changes = previous && previous.extraction !== metadata.extraction
+      ? { status: 'capture_method_changed', interpretation: 'The extraction method differs from the previous review. No document change is inferred; this creates a new baseline for the current method.' }
+      : previous ? { ...compareTexts(previous.text, text), baseline_saved_at: previous.saved_at, baseline_url: previous.url } : { status: 'first_review', interpretation: 'No previous copy exists for this exact URL. This review creates the baseline; changes cannot yet be assessed.' };
     report.summary_instructions += ' Also explain important changes using changes.added and changes.removed. Cite removed clauses as [OLD_C0001] and current clauses as [C0001]. If first_review, clearly say there is no earlier copy to compare. Distinguish formatting changes from substantive commitments. Identify possible red flags with exact evidence and any mitigating exception; never invent a numerical safety score.';
-    records[key] = { text, url: url.href, saved_at: new Date().toISOString() };
+    records[key] = { text, url: url.href, extraction: metadata.extraction, saved_at: new Date().toISOString() };
     // Keep at most 30 URL baselines. No raw URLs or titles are used as paths.
     records = Object.fromEntries(Object.entries(records).sort((a, b) => b[1].saved_at.localeCompare(a[1].saved_at)).slice(0, 30));
     const temporary = `${file}.${randomUUID()}.tmp`;

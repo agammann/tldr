@@ -2,6 +2,8 @@
 
 Verified locally on September 15, 2026, with Node.js 24.19.0, MCP SDK 1.30.0, pnpm 11.19.0 and Playwright 1.62.1.
 
+The original checks below are retained as the initial verification record. A later fresh checkout and live page check found and corrected Windows line ending assumptions and the original 48,000 character limit. Current validation has 14 passing tests, six successful live URL reviews and three live browser captures. See [REAL_WORLD_VALIDATION.md](docs/REAL_WORLD_VALIDATION.md) for the current evidence and scope.
+
 ## Passed
 
 1. `node --test test/*.test.mjs`: 11 tests passed, zero failures.

@@ -6,18 +6,20 @@ import { fetchTerms } from './fetch.mjs';
 import { fileURLToPath } from 'node:url';
 import { History, compareTexts } from './history.mjs';
 import { loadPairing, startBridge } from './bridge.mjs';
+import { ReviewPages } from './pages.mjs';
 
 const localDirectory = process.env.TERMS_TLDR_DATA_DIR || fileURLToPath(new URL('../.local/', import.meta.url));
 const history = new History(localDirectory);
+const pages = new ReviewPages();
 let bridge;
 let bridgeError;
 try { bridge = await startBridge(loadPairing(localDirectory)); }
 catch { bridgeError = 'Browser bridge could not start on 127.0.0.1:43187. Close other instances or resolve the port conflict, then restart this MCP.'; console.error(bridgeError); }
 
-const server = new McpServer({ name: 'terms-tldr', version: '0.1.0' }, { instructions: REVIEW_GUIDANCE });
+const server = new McpServer({ name: 'terms-tldr', version: '0.1.1' }, { instructions: REVIEW_GUIDANCE });
 const result = value => ({ content: [{ type: 'text', text: JSON.stringify(value) }], structuredContent: value });
 const guarded = fn => async args => {
-  try { return result(await fn(args)); }
+  try { const value = await fn(args); return result(value.source_clauses && value.document ? pages.prepare(value) : value); }
   catch (error) { return { isError: true, content: [{ type: 'text', text: error instanceof Error ? error.message : 'Terms review failed.' }] }; }
 };
 server.registerTool('review_terms_text', {
@@ -48,10 +50,17 @@ server.registerTool('review_current_page', {
   const report = capture.truncated || capture.selection ? reviewText(capture.text, metadata) : history.review(capture.text, metadata);
   report.browser_context = { candidate_policy_links: capture.links, capture_age_seconds: Math.floor((Date.now() - Date.parse(capture.received_at)) / 1000), live_tab_verified: false, selected_text_only: capture.selection };
   report.coverage.input_truncated = capture.truncated;
+  report.document.input_truncated = capture.truncated;
   if (capture.truncated || capture.selection) report.changes = { status: 'comparison_skipped_partial_capture', interpretation: 'Partial page capture. A complete baseline was not saved or overwritten.' };
   report.summary_instructions += ' State the captured URL and capture age. The active tab may have changed. If this is signup content, fetch the relevant terms links before making claims about the agreement. Linked policies may be on another domain; preserve their separate scope. Highlight possible red flags with citations and mitigating exceptions. If capture is partial, say the review is partial.';
   return report;
 }));
+server.registerTool('read_review_page', {
+  title: 'Read the remaining clauses of a long review',
+  description: 'Read a numbered source page from an existing review. Read every page before a complete TLDR. Returns current and removed clauses with citation IDs. Does not refetch a page or change the saved baseline.',
+  inputSchema: { review_id: z.string().uuid(), page: z.number().int().min(1).max(1000) },
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
+}, guarded(({ review_id, page }) => pages.read(review_id, page)));
 server.registerTool('compare_terms_text', {
   title: 'Compare two copies of terms',
   description: 'Compare old and new supplied terms. Returns removed and added clauses plus all current clauses so the assistant can explain important changes and possible red flags. Does not infer the date or legality of changes.',

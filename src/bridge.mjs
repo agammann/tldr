@@ -51,12 +51,12 @@ export async function startBridge({ token, port = 43187 }) {
     const chunks = [];
     request.on('data', chunk => {
       bytes += chunk.length;
-      if (bytes > 400000) { response.writeHead(413).end(); request.destroy(); }
+      if (bytes > 1200000) { response.writeHead(413).end(); request.destroy(); }
       else chunks.push(chunk);
     });
     request.on('error', () => {});
     request.on('end', () => {
-      if (bytes > 400000) return;
+      if (bytes > 1200000) return;
       try {
         const capture = captureSchema.parse(JSON.parse(Buffer.concat(chunks).toString('utf8')));
         latest = { ...capture, received_at: new Date().toISOString() };

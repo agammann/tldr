@@ -14,9 +14,19 @@ test('real stdio client discovers and invokes review, comparison, browser captur
   t.after(() => client.close());
   await client.connect(transport);
   const names = (await client.listTools()).tools.map(t => t.name);
-  assert.deepEqual(names.sort(), ['review_terms_text', 'review_terms_url', 'review_current_page', 'compare_terms_text'].sort());
+  assert.deepEqual(names.sort(), ['review_terms_text', 'review_terms_url', 'review_current_page', 'compare_terms_text', 'read_review_page'].sort());
   const result = await client.callTool({ name: 'review_terms_text', arguments: { text: 'You pay $12 per month. Cancel anytime.' } });
   assert.equal(result.structuredContent.document.clause_count, 1);
+  const longText=Array.from({length:80},(_,i)=>`Section ${i}. ${'These fees renew annually. '.repeat(30)}`.trim()).join('\n\n');
+  const long=await client.callTool({name:'review_terms_text',arguments:{text:longText}});
+  assert.ok(long.structuredContent.pagination.total_pages>1);
+  const full=[...long.structuredContent.source_clauses];
+  for(let page=2;page<=long.structuredContent.pagination.total_pages;page++) {
+    const next=await client.callTool({name:'read_review_page',arguments:{review_id:long.structuredContent.pagination.review_id,page}});
+    assert.ok(!next.isError);
+    full.push(...next.structuredContent.source_clauses);
+  }
+  assert.equal(full.map(c=>c.text).join('\n\n'),longText);
   const absent = await client.callTool({ name: 'review_current_page', arguments: {} });
   assert.equal(absent.isError, true);
   const pairing = JSON.parse(readFileSync(join(data, 'pairing.json'), 'utf8'));
