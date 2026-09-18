@@ -1,5 +1,7 @@
 # Real world validation
 
+This is a dated integration history. For the current status, see [Verification](../VERIFICATION.md). For everyday setup, use [Installation](INSTALL.md). Earlier checkpoints below are retained to explain the fixes; later follow ups supersede their installation limitations.
+
 Checked September 15, 2026, Pacific time (September 16 UTC). The initial published revision was `b88b45c03a7c6d3a08da86d985c989da8844ef68`.
 
 ## Findings and corrections
@@ -53,7 +55,7 @@ pnpm test:live
 pnpm test:live-browser
 ```
 
-Run these sequentially. Browser tests require an extension capable Edge/Chromium executable. On Windows they default to Edge; another executable can be selected using `BROWSER_EXECUTABLE`. Live results and local baselines are saved under `.local`, which is excluded from the repository. The 14 controlled tests run without third party network access; the live tests are deliberately separate from CI.
+Run these sequentially and follow the [development guide](../CONTRIBUTING.md#optional-integration-checks) for port and pairing precautions. Browser tests require an extension capable Edge/Chromium executable. On Windows they default to Edge; another executable can be selected using `BROWSER_EXECUTABLE`. Live results and local baselines are saved under `.local`, which is excluded from the repository. There were 14 controlled tests at this checkpoint; the later multiple session fix brought the total to 15. Live tests are separate from CI.
 
 ## Remaining limits
 

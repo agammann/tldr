@@ -1,30 +1,35 @@
 # Verification record
 
-Verified locally on September 15, 2026, with Node.js 24.19.0, MCP SDK 1.30.0, pnpm 11.19.0 and Playwright 1.62.1.
+[Back to the README](README.md) · [Detailed integration history](docs/REAL_WORLD_VALIDATION.md)
 
-The original checks and boundaries below are retained as the historical initial verification record. Current version 0.1.2 has 15 passing tests, six successful live URL reviews, live capture checks in Chrome and Edge, and a completed review from the user's normal Chrome profile through the installed Codex MCP. The multiple session bridge conflict found during host integration is fixed. All 92 clauses of the final Dropbox capture were retrieved across two source pages, and a repeat review of that snapshot reported unchanged. See [REAL_WORLD_VALIDATION.md](docs/REAL_WORLD_VALIDATION.md) for current evidence and scope; the older installation limitations below have been superseded there.
+## Current evidence
 
-## Passed
+Current code: MCP **0.1.3**, extension **0.1.2**. The product was renamed to tldr on September 16, 2026 UTC. Existing pairing, history and bridge protocol compatibility were preserved.
 
-1. `node --test test/*.test.mjs`: 11 tests passed, zero failures.
-2. `node scripts/browser-smoke.mjs`: the actual unpacked extension loaded in an isolated, headless Microsoft Edge profile. The test selected the local pairing file, captured a real rendered fictional page through the extension's scripting API, and invoked the MCP through the official SDK stdio client.
-3. The browser test verified discovery of a terms link, creation of a first baseline, and detection of a later $12 to $24 price change with both old and new source text.
-4. A fictional password field value was excluded from that browser capture.
-5. A live public HTTPS fetch of the official MCP Registry terms page succeeded. It extracted 7,892 characters and 33 links. This was a connectivity/extraction check, not a legal assessment.
-6. The extension popup screenshot was inspected for readable layout and successful capture feedback: [verified popup](examples/extension-verified.png).
+| Check | Recorded result | Scope |
+| :--- | :--- | :--- |
+| Controlled tests after the rename | 15 passed, zero failures | Evidence, comparison, storage, network validation, authenticated bridge and real MCP stdio calls. |
+| Multiple MCP conversations | Passed | Sessions sharing a pairing can review one capture. Ownership recovery and rejection of different pairings were tested. |
+| Live public URL review | Six documents retrieved completely and repeated as unchanged | All extracted pages were read. This does not establish that linked or personalized policies were included. |
+| Chrome and Edge integration | Passed on Dropbox, Spotify and GitHub | Extension action permission, capture and complete source paging in isolated profiles. |
+| Everyday Chrome through installed Codex | Completed September 16 at 05:18:17 UTC | Dropbox capture: 26,153 characters, 92 clauses across two pages, followed by an unchanged repeat of the same snapshot. |
+| Public website | Published on OpenAI Sites | Predefined example and guide. No hosted AI review or remote MCP endpoint. |
+| Website redesign | Syntax, assets, anchors and example JSON checked | The redesign did not repeat the original site's browser visual checks. |
 
-The core tests cover complete evidence preservation, exceptions and negation, input bounds, duplicates, reordering, history across process instances, partial capture protection, private and reserved IP rejection, mixed public/private DNS answers, HTML extraction, bridge authentication, rejection of website Origins, malformed captures, tool discovery, prompt retrieval and real protocol calls.
+The [integration history](docs/REAL_WORLD_VALIDATION.md) records original failures, corrections, hashes, counts and dated follow ups. Earlier checkpoints describe the state at that time; they are not current installation instructions. The historical [extension screenshot](examples/extension-verified.png) predates the rename.
 
-## Boundaries
+## Evidence boundaries
 
-The tested browser was Edge. The extension uses Chrome MV3 APIs, but a separate Chrome installation test was not completed. The bundled Chromium executable failed to launch in this environment; Edge provided the completed browser verification.
+These tests do not measure legal accuracy or prove compatibility with every assistant. The connected model writes the summary and determines which changes deserve attention. No universal support is claimed for PDFs, inaccessible frames, login protected agreements, geographic variants or restricted sites.
 
-The full path from extension to MCP was exercised with fictional terms. No legal accuracy benchmark or automated model summarization evaluation was performed. The assistant host generates the final semantic TLDR and chooses which changes deserve attention. Keyword topic hints alone are not a semantic review.
+The extension is not published in a browser store. The MCP is local and has no continuous monitor or agreement acceptance automation.
 
-The project has not been connected to the user's everyday assistant or browser profile, published to a registry or extension store, or deployed as a hosted service. There is no background monitoring, universal signup interception, PDF ingestion, or agreement acceptance automation.
+## Reproduce
 
-The included [MCP configuration example](mcp-config.example.json) and [setup guide](README.md) are ready for local installation. Machine specific configuration, captured pages, local pairing tokens and review history are excluded from the public repository.
+Follow [installation](docs/INSTALL.md) for everyday use. Follow [development](CONTRIBUTING.md) for controlled tests and optional browser/live checks, including port and pairing precautions.
 
-## tldr rename and website redesign
+## Documentation cleanup validation
 
-September 16, 2026 UTC: renamed product displays, extension manifest, MCP server identity, package metadata, setup examples and GitHub repository to tldr. MCP version 0.1.3 and extension version 0.1.2. All 15 controlled tests passed, including a connection using TLDR environment settings and a second connection using the compatible legacy settings. Website syntax, local asset references, internal anchors and example configuration JSON passed static checks. This redesign did not repeat the earlier browser visual checks. Existing pairing, history, local install paths and bridge protocol remain compatible.
+On September 17, 2026, a fresh clone installed successfully with Node 24.19.0, pnpm 11.19.0 and the frozen lockfile, using a cache inside the verification workspace. All 38 local documentation links and heading references passed, all 15 external documentation destinations returned HTTP 200, the installation JSON parsed, and the referenced PNG was valid. No runtime source changed in this cleanup.
+
+The fresh local test attempt was blocked before test bodies ran: this session denied Node child process creation with `spawn EPERM`. The 15 passing tests above are retained prior evidence, not a claimed fresh pass. Check the repository's Actions results for remote validation of this documentation revision.
