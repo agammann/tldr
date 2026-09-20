@@ -28,7 +28,7 @@ pnpm install --frozen-lockfile
 
 Alternatively, [download the ZIP](https://github.com/agammann/tldr/archive/refs/heads/main.zip), extract it, and open a terminal in the folder containing `package.json`. Run `pnpm install --frozen-lockfile` there. A ZIP usually extracts to `tldr-main`; use that actual folder name in every path below.
 
-There is no build step. Optional check: `pnpm test` should report 15 passing tests. It does not test your assistant's connection or install the extension.
+There is no build step. Optional check: `pnpm test` should finish with zero failures. It does not test your assistant's connection or install the extension.
 
 ## 2. Connect your assistant
 

@@ -45,6 +45,6 @@ The separate Privacy Policy was not supplied, and a first review has no prior ba
 | Setting | Default | Notes |
 | :--- | :--- | :--- |
 | `TLDR_DATA_DIR` | The checkout's `.local` directory | Contains pairing and history. Sessions must use the same directory to share a capture. |
-| `TLDR_BRIDGE_PORT` | `43187` | Internal testing override. Keep the default for the shipped extension, which requires this endpoint. |
+| `TLDR_BRIDGE_PORT` | `43187` | Optional loopback port. The extension accepts the exact `127.0.0.1` endpoint from its pairing file. Use a separate data directory when changing ports, then import that pairing file. |
 
 The older `TERMS_TLDR_DATA_DIR` and `TERMS_TLDR_BRIDGE_PORT` names remain fallback aliases. The `terms-tldr-bridge-v1` protocol identifier is retained for compatibility. These are not stale product display names.

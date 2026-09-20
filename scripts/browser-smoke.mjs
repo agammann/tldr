@@ -1,19 +1,19 @@
+import { isolatedSession } from './test-session.mjs';
 import { chromium } from 'playwright';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { mkdtempSync, readFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const directory = mkdtempSync(join(tmpdir(), 'terms-browser-'));
+const { directory, env } = await isolatedSession();
 const client = new Client({ name: 'real-browser-test', version: '1.0.0' });
-const transport = new StdioClientTransport({ command: process.execPath, args: [join(root, 'src/server.mjs')], env: { ...process.env, TERMS_TLDR_DATA_DIR: directory }, stderr: 'inherit' });
+const transport = new StdioClientTransport({ command: process.execPath, args: [join(root, 'src/server.mjs')], env, stderr: 'inherit' });
 const fixture = readFileSync(join(root, 'examples/fictional-terms.txt'), 'utf8');
-const web = http.createServer((req, res) => res.end(`<html><head><title>Fictional CloudNotebook</title></head><body><h1>Fictional terms</h1><div style="white-space:pre-wrap">${fixture}</div><a href="https://example.com/terms">Terms of service</a><input type="password" value="FICTIONAL_SECRET_SHOULD_NOT_CAPTURE"></body></html>`));
+const web = http.createServer((req, res) => res.end(`<html><head><title>Fictional CloudNotebook</title></head><body><h1>Fictional terms</h1><div style="white-space:pre-wrap">${fixture}</div><a href="https://example.com/terms">Terms of service</a><input type="password" value="FICTIONAL_SECRET_SHOULD_NOT_CAPTURE"><input value="FICTIONAL_INPUT_SECRET"><textarea>FICTIONAL_TEXTAREA_SECRET</textarea></body></html>`));
 await new Promise(resolve => web.listen(0, '127.0.0.1', resolve));
 let context;
 try {
@@ -26,9 +26,16 @@ try {
   const target = await context.newPage();
   await target.goto(`http://127.0.0.1:${web.address().port}/terms`);
   const popup = await context.newPage();
+  await popup.addInitScript(() => {
+    if (location.protocol !== 'chrome-extension:') return;
+    const get = chrome.storage.local.get.bind(chrome.storage.local);
+    const gate = new Promise(resolve => { window.releaseSettings = resolve; });
+    chrome.storage.local.get = async (...args) => { await gate; return get(...args); };
+  });
   await popup.goto(`chrome-extension://${id}/popup.html`);
   await popup.locator('summary').click();
   await popup.locator('#pair').setInputFiles(join(directory, 'pairing.json'));
+  await popup.evaluate(() => window.releaseSettings());
   await popup.getByText('Connected settings saved.', { exact: false }).waitFor();
   await target.bringToFront();
   await popup.locator('#capture').click();
@@ -38,6 +45,8 @@ try {
   assert.equal(result.structuredContent.changes.status, 'first_review');
   assert.ok(result.structuredContent.source_clauses.some(c => c.text.includes('$12')));
   assert.ok(!JSON.stringify(result.structuredContent).includes('FICTIONAL_SECRET_SHOULD_NOT_CAPTURE'));
+  assert.ok(!JSON.stringify(result.structuredContent).includes('FICTIONAL_INPUT_SECRET'));
+  assert.ok(!JSON.stringify(result.structuredContent).includes('FICTIONAL_TEXTAREA_SECRET'));
   assert.equal(result.structuredContent.browser_context.candidate_policy_links[0].url, 'https://example.com/terms');
   await target.locator('div').evaluate(el => { el.textContent = el.textContent.replace('$12', '$24'); });
   await target.bringToFront();
@@ -47,7 +56,49 @@ try {
   assert.equal(updated.structuredContent.changes.status, 'text_changed');
   assert.ok(updated.structuredContent.changes.added.some(c => c.text.includes('$24')));
   assert.ok(updated.structuredContent.changes.removed.some(c => c.text.includes('$12')));
+  const completeHtml = await target.locator('body').innerHTML();
+  async function capturePage(expected) {
+    await target.bringToFront();
+    await popup.locator('#capture').click();
+    await popup.locator('#capture:not([disabled])').waitFor();
+    assert.match(await popup.locator('#status').innerText(), expected);
+  }
+  await target.locator('div').evaluate(el => {
+    const range = document.createRange(); range.selectNodeContents(el);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+  });
+  await capturePage(/Partial page captured/);
+  const selected = await client.callTool({ name: 'review_current_page', arguments: {} });
+  assert.equal(selected.structuredContent.changes.status, 'comparison_skipped_partial_capture');
+  assert.equal(selected.structuredContent.browser_context.selected_text_only, true);
+  await target.evaluate(() => { window.getSelection().removeAllRanges(); document.body.innerText = 'Long terms. '.repeat(15000); });
+  await capturePage(/Partial page captured/);
+  const oversized = await client.callTool({ name: 'review_current_page', arguments: {} });
+  assert.equal(oversized.structuredContent.document.input_truncated, true);
+  assert.equal(oversized.structuredContent.changes.status, 'comparison_skipped_partial_capture');
+  await target.locator('body').evaluate((el, html) => { el.innerHTML = html; }, completeHtml);
+  await capturePage(/Page captured/);
+  assert.equal((await client.callTool({ name: 'review_current_page', arguments: {} })).structuredContent.changes.status, 'unchanged');
+  await target.evaluate(() => { document.body.innerText = ''; });
+  await capturePage(/No readable text found/);
+  assert.equal((await client.callTool({ name: 'review_current_page', arguments: {} })).structuredContent.document.sha256, updated.structuredContent.document.sha256);
+  const correctPairing = readFileSync(join(directory, 'pairing.json'), 'utf8');
+  const wrongPairing = join(directory, 'wrong-pairing.json');
+  writeFileSync(wrongPairing, JSON.stringify({ ...JSON.parse(correctPairing), token: '0'.repeat(64) }));
+  await popup.locator('#pair').setInputFiles(wrongPairing);
+  await popup.getByText('Connected settings saved.', { exact: false }).waitFor();
+  await target.locator('body').evaluate((el, html) => { el.innerHTML = html; }, completeHtml);
+  await capturePage(/Capture failed \(401\)/);
+  await popup.locator('#pair').setInputFiles(join(directory, 'pairing.json'));
+  await popup.getByText('Connected settings saved.', { exact: false }).waitFor();
+  await capturePage(/Page captured/);
   await popup.setViewportSize({ width: 350, height: 730 });
-  await popup.screenshot({ path: join(root, 'examples/extension-verified.png') });
-  console.log(JSON.stringify({ extension_loaded: true, real_capture: true, mcp_review: true, first_baseline: true, changed_price_detected: true, password_value_excluded: true, terms_link_discovered: true }));
+  mkdirSync(join(root, '.local'), { recursive: true });
+  await popup.screenshot({ path: join(root, '.local/extension-verified.png') });
+  await client.close();
+  await capturePage(/Local MCP is not reachable/);
+  await popup.locator('#forget').click();
+  await popup.getByText('Connection forgotten.', { exact: true }).waitFor();
+  await capturePage(/Choose your local pairing/);
+  console.log(JSON.stringify({ browser_version: context.browser().version(), extension_loaded: true, real_capture: true, mcp_review: true, first_baseline: true, changed_price_detected: true, password_value_excluded: true, terms_link_discovered: true, partial_captures_preserve_baseline: true, empty_capture_preserves_snapshot: true, wrong_pairing_rejected: true, disconnected_and_unpaired_guidance: true }));
 } finally { await context?.close(); await client.close(); await new Promise(resolve => web.close(resolve)); }

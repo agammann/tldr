@@ -11,16 +11,16 @@ pnpm install --frozen-lockfile
 pnpm test
 ```
 
-The 15 controlled tests exercise evidence preservation, comparisons, history, network validation, authentication and real MCP stdio calls. They use isolated state and ports and do not require third party terms pages. CI defines Node 22 and 24 on Windows and Ubuntu.
+The controlled tests exercise evidence preservation, comparisons, history, network validation, authentication, extension pairing and real MCP stdio calls. They use isolated state and ports and do not require third party terms pages. CI defines Node 22 and 24 on Windows and Ubuntu.
 
 ## Optional integration checks
 
-Run these sequentially. Before the demo or integration checks, stop everyday tldr MCP connections: these scripts use a separate pairing on the same default bridge port. Clear custom `TLDR_DATA_DIR`, `TLDR_BRIDGE_PORT` and their older aliases from the test terminal so they cannot redirect test state into your everyday installation.
+The demo and integration checks automatically use temporary state, a fresh pairing and an available loopback port. They override both current and legacy environment variables in the child MCP. Your everyday tldr connection can remain running. Browser checks use temporary profiles; they do not change your saved extension settings or baselines. Temporary state remains in your operating system's temporary directory after the check; only public or fictional pages should be used in these scripts.
 
 | Command | What it checks |
 | :--- | :--- |
 | `pnpm demo` | Prints evidence for fictional terms through the SDK. It does not generate an AI summary. |
-| `pnpm test:browser` | Loads the extension in an isolated profile and checks capture, a controlled price change, policy links and password input exclusion. |
+| `pnpm test:browser` | Checks capture, price changes, policy links, password input exclusion, partial captures, empty pages, wrong pairing and disconnected guidance. Saves a screenshot under `.local`. |
 | `pnpm test:live` | Fetches real public terms pages and reads all source pages. Requires network access. |
 | `pnpm test:live-browser` | Exercises extension action permission and capture on public pages. Requires network access. |
 
@@ -31,7 +31,7 @@ $env:BROWSER_EXECUTABLE = 'C:\Program Files\Google\Chrome\Application\chrome.exe
 pnpm test:browser
 ```
 
-The variable also applies to `pnpm test:live-browser`. Other platforms need an extension capable Chromium executable; set `BROWSER_EXECUTABLE` to its installed path. Scripts use `Extensions.loadUnpacked` and, for live capture, `Extensions.triggerAction` in a temporary profile. They do not apply special extension debugging settings to your everyday profile. Live results can fail or change as providers update or restrict their sites. Reconnect your everyday MCP and capture again afterward.
+The variable also applies to `pnpm test:live-browser`. Other platforms need an extension capable Chromium executable; set `BROWSER_EXECUTABLE` to its installed path. Scripts use `Extensions.loadUnpacked` and, for live capture, `Extensions.triggerAction` in a temporary profile. They do not apply special extension debugging settings to your everyday profile. Live results can fail or change as providers update or restrict their sites.
 
 ## Repository map
 

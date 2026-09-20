@@ -80,3 +80,45 @@ Restarting the Codex MCP connections exposed all five tools in this conversation
 All 15 controlled tests pass after the fix. The real stdio test now connects two independent clients to the same pairing and verifies that both can review one capture. A separate regression test covers ownership recovery after exit, the required fresh capture after RAM loss, and rejection of different pairing tokens and browser Origins. Protocol tests select an isolated port so they can run alongside an everyday MCP instance.
 
 After reloading Codex, the normal Chrome profile captured Dropbox terms at September 16, 2026, 05:18:17 UTC. This conversation directly invoked the installed `review_current_page` tool, then retrieved the second source page with `read_review_page`: 26,153 characters, 92 unique clauses, no truncation, matching page hashes. Document SHA256: `c6961c7c30126075e70f1f3fce12477e56301cc989d0842643103c58fe100a8e`. The first call created the browser baseline; a second review of the same capture returned `unchanged`. The assistant produced a cited TLDR from all retrieved clauses. This completes the actual Chrome extension to Codex MCP to assistant review path. It does not constitute a legal accuracy benchmark or a fresh second website fetch. The different count from isolated browser tests reflects captured page text, not a claim of changed provider terms.
+
+## September 19, 2026: user workflow retest and fixes
+
+Checked on Windows with Node 24.19.0 and pnpm 11.19.0, on September 19 Pacific time (September 20 UTC). MCP 0.1.4 and extension 0.1.3 contain these changes:
+
+* Fixed a popup initialization race: choosing a pairing file before asynchronous settings initialization finished could lose the selection event. Event handlers now register before settings finish and wait for readiness. The browser test deliberately holds settings loading until after a file is selected to reproduce this timing.
+* Added a visible capturing status, explicit partial status for selected text, and a readable error for empty pages. An empty capture leaves the last successful snapshot intact.
+* Integration scripts now use temporary state, their own pairing and a free loopback port, overriding both current and legacy environment variables. They ran alongside the existing everyday bridge. Extension pairing accepts explicit ports only on the literal 127.0.0.1 address; tests reject remote hosts, credentials, paths, invalid ports and malformed tokens.
+* Browser screenshots now go into ignored .local storage instead of overwriting the historical tracked screenshot.
+
+All 16 controlled tests passed. A separate checkout with the patch copied in installed using the frozen lockfile and passed the same 16 tests. This exercised a clean dependency installation on Windows; it is not a claim of a new macOS or Linux installation test.
+
+The expanded controlled browser suite passed in Chrome 153.0.8010.53 and Edge 153.0.4234.46. It checks actual extension loading, delayed initialization, pairing, capture, a fictional $12 to $24 price change, policy links, exclusion of password/input/textarea values, selected text, 160,000-character truncation, preserved full baselines, empty pages, rejection of a wrong token, disconnected guidance and forgetting a connection.
+
+### Live URL checks
+
+Each URL produced a first baseline, returned every source page without duplicate clause IDs, and returned unchanged on a fresh second fetch. These checks use the public sites over the network, not saved fixtures.
+
+| Provider | Characters | Clauses | Source pages |
+| :--- | ---: | ---: | ---: |
+| Dropbox | 27,849 | 246 | 3 |
+| Spotify | 56,167 | 223 | 4 |
+| GitHub | 49,082 | 342 | 4 |
+| Cloudflare | 46,676 | 396 | 4 |
+| Mozilla | 7,996 | 149 | 1 |
+| MCP Registry | 7,892 | 72 | 1 |
+
+The commands and public URLs are in scripts/live-check.mjs. Extracted source completeness does not establish completeness of linked, regional or account-specific policies.
+
+### Live Chrome capture
+
+The live browser suite passed on the public Dropbox, Spotify and GitHub pages with Chrome 153.0.8010.53. Before invoking the extension action, page access was denied; after invoking it, capture succeeded. All returned pages were read and none were truncated.
+
+| Provider | Characters | Clauses | Source pages |
+| :--- | ---: | ---: | ---: |
+| Dropbox | 26,315 | 92 | 2 |
+| Spotify | 55,852 | 156 | 4 |
+| GitHub | 47,115 | 191 | 4 |
+
+These are installed browser executables with isolated headless profiles, using the browser extension action API. They do not simulate the capture payload, but they are not an external user study. The normal-profile UI retest was stopped by the computer-use tool because it could not reliably determine Chrome's current URL; no new normal-profile pass or extension reload is claimed.
+
+The installed Codex review_terms_text tool also returned all seven clauses of a new fictional acceptance example, including a 14-day trial, $12 renewal, refund exception, limited content license, arbitration opt-out, liability exceptions, an unsupplied Privacy Policy reference and an embedded instruction treated as source text. This confirms direct host invocation; it does not measure legal accuracy or guarantee prompt-injection resistance. No actual agreements were accepted or signed.

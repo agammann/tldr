@@ -21,7 +21,7 @@ The public website contains a predefined example and guide. It has no terms subm
 
 URL keys include query strings, which may contain account information. `.local` and machine specific `mcp-config.json` are ignored by Git. Do not share those files in screenshots, issues or archives.
 
-The bridge listens on `127.0.0.1:43187`, requires the pairing token, checks the HTTP Host and rejects ordinary website Origins. Sessions with the same pairing can read the same latest capture. Different pairings cannot. If the owner exits, a later review can start a replacement bridge, but the lost snapshot must be captured again.
+The bridge listens on `127.0.0.1:43187` by default, requires the pairing token, checks the HTTP Host and rejects ordinary website Origins. An explicitly configured port still uses the literal loopback address; remote hosts are rejected by the extension's pairing validation. Sessions with the same pairing can read the same latest capture. Different pairings cannot. If the owner exits, a later review can start a replacement bridge, but the lost snapshot must be captured again.
 
 See [resetting local data](TROUBLESHOOTING.md#resetting-local-data) to erase history or reset pairing.
 

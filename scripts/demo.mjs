@@ -1,11 +1,11 @@
+import { isolatedSession } from './test-session.mjs';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { readFileSync, mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+const { env } = await isolatedSession();
 const client = new Client({ name: 'terms-demo', version: '1.0.0' });
-const transport = new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('../src/server.mjs', import.meta.url))], env: { ...process.env, TERMS_TLDR_DATA_DIR: mkdtempSync(join(tmpdir(), 'terms-demo-')) }, stderr: 'inherit' });
+const transport = new StdioClientTransport({ command: process.execPath, args: [fileURLToPath(new URL('../src/server.mjs', import.meta.url))], env, stderr: 'inherit' });
 try {
   await client.connect(transport);
   const text = readFileSync(new URL('../examples/fictional-terms.txt', import.meta.url), 'utf8');

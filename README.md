@@ -62,6 +62,6 @@ Read [privacy and limitations](docs/PRIVACY_AND_LIMITS.md) for storage, deletion
 
 ## Project status
 
-MCP **0.1.3** · Extension **0.1.2**. The public repository is [agammann/tldr](https://github.com/agammann/tldr). The website retains its original `terms-tldr` address. Existing installation folders and pairing files remain compatible with the rename; see [updating an installation](docs/INSTALL.md#updating-an-existing-installation).
+MCP **0.1.4** · Extension **0.1.3**. The public repository is [agammann/tldr](https://github.com/agammann/tldr). The website retains its original `terms-tldr` address. Existing installation folders and pairing files remain compatible; see [updating an installation](docs/INSTALL.md#updating-an-existing-installation).
 
 The source is public, but no project redistribution license has been assigned. Dependency licenses remain with their respective authors. The package's `private` flag prevents accidental npm publication; it does not describe GitHub visibility.

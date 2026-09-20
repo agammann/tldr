@@ -1,3 +1,4 @@
+import { isolatedSession } from './test-session.mjs';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -15,8 +16,9 @@ const pages = [
  ['mozilla','https://www.mozilla.org/en-US/about/legal/terms/firefox/'],
  ['mcp','https://modelcontextprotocol.io/registry/terms-of-service']
 ];
+const { env } = await isolatedSession();
 const client = new Client({name:'live-terms-verification',version:'1.0.0'});
-const transport = new StdioClientTransport({command:process.execPath,args:[join(root,'src/server.mjs')],env:{...process.env,TERMS_TLDR_DATA_DIR:join(out,'state')},stderr:'inherit'});
+const transport = new StdioClientTransport({command:process.execPath,args:[join(root,'src/server.mjs')],env,stderr:'inherit'});
 const results=[];
 try {
  await client.connect(transport);
@@ -38,4 +40,6 @@ try {
   results.push(report);console.log(JSON.stringify(report));
  }
  assert.ok(results.every(r=>!r.error),'Every live page must produce a complete source review');
+ assert.ok(results.every(r=>r.baseline==='first_review'),'Isolated live checks must start with fresh baselines');
+ assert.ok(results.every(r=>r.repeat==='unchanged'),'Repeated fetches must match; investigate provider text changes if this fails');
 } finally {await client.close();writeFileSync(join(out,'results.json'),JSON.stringify(results,null,2));}

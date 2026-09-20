@@ -1,23 +1,32 @@
+import { validatePairing } from './pairing.mjs';
+
 const status = document.querySelector('#status');
 const button = document.querySelector('#capture');
-await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
-let { pairing } = await chrome.storage.local.get('pairing');
-status.textContent = pairing ? 'Ready. Open a signup or terms page and capture it.' : 'Connect your local MCP below to begin.';
+let pairing;
+const ready = (async () => {
+  await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
+  const saved = await chrome.storage.local.get('pairing');
+  pairing = saved.pairing ? validatePairing(saved.pairing) : null;
+  status.textContent = pairing ? 'Ready. Open a signup or terms page and capture it.' : 'Connect your local MCP below to begin.';
+})();
+ready.catch(() => { status.textContent = 'Saved connection could not be loaded. Forget it and choose your pairing file again.'; });
 document.querySelector('#pair').addEventListener('change', async event => {
   try {
+    await ready.catch(() => {});
     const file = event.target.files[0];
     if (!file || file.size > 4096) throw new Error('Choose the small pairing.json file created by the MCP.');
     const value = JSON.parse(await file.text());
-    if (value.endpoint !== 'http://127.0.0.1:43187' || !/^[a-f0-9]{64}$/.test(value.token)) throw new Error('This is not a valid pairing file.');
-    pairing = { endpoint: value.endpoint, token: value.token };
+    pairing = validatePairing(value);
     await chrome.storage.local.set({ pairing });
     status.textContent = 'Connected settings saved. Capture this page to send it.';
   } catch (error) { status.textContent = error.message; }
 });
-document.querySelector('#forget').addEventListener('click', async () => { await chrome.storage.local.remove('pairing'); pairing = null; status.textContent = 'Connection forgotten.'; });
+document.querySelector('#forget').addEventListener('click', async () => { await ready.catch(() => {}); await chrome.storage.local.remove('pairing'); pairing = null; status.textContent = 'Connection forgotten.'; });
 button.addEventListener('click', async () => {
   button.disabled = true;
+  status.textContent = 'Capturing page…';
   try {
+    await ready.catch(() => {});
     if (!pairing) throw new Error('Choose your local pairing.json file below first.');
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id || !/^https?:\/\//.test(tab.url || '')) throw new Error('Open a regular website first. Browser settings and PDF viewer pages are not supported.');
@@ -30,9 +39,10 @@ button.addEventListener('click', async () => {
         .slice(0, 40).map(a => ({ label: a.textContent.trim().slice(0, 200), url: a.href }));
       return { url: location.href, title: document.title.slice(0, 300), text: raw.slice(0, 160000), links, captured_at: new Date().toISOString(), truncated: raw.length > 160000, selection: !!selection };
     } });
+    if (!capture.text.trim()) throw new Error('No readable text found. Wait for the terms to load, or select the text you want reviewed.');
     const response = await fetch(`${pairing.endpoint}/capture`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${pairing.token}` }, body: JSON.stringify(capture), signal: AbortSignal.timeout(5000) });
     if (!response.ok) throw new Error(`Capture failed (${response.status}). Check pairing and restart your MCP.`);
-    status.textContent = `${capture.truncated ? 'Partial page captured. ' : 'Page captured. '}Ask your assistant: “Review my captured page, explain the important terms, what changed, and any red flags.”`;
+    status.textContent = `${capture.truncated || capture.selection ? 'Partial page captured. ' : 'Page captured. '}Ask your assistant: “Review my captured page, explain the important terms, what changed, and any red flags.”`;
   } catch (error) { status.textContent = error.message === 'Failed to fetch' ? 'Local MCP is not reachable. Start it in your assistant, then try again.' : error.message; }
   finally { button.disabled = false; }
 });

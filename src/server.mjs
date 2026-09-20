@@ -18,7 +18,7 @@ let bridgeError;
 try { bridge = sharedBridge({ ...loadPairing(localDirectory, bridgePort), port: bridgePort }); await bridge.start(); }
 catch { bridgeError = `Browser bridge could not start on 127.0.0.1:${bridgePort}. Check pairing and port configuration, then restart this MCP.`; bridge = undefined; console.error(bridgeError); }
 
-const server = new McpServer({ name: 'tldr', version: '0.1.3' }, { instructions: REVIEW_GUIDANCE });
+const server = new McpServer({ name: 'tldr', version: '0.1.4' }, { instructions: REVIEW_GUIDANCE });
 const result = value => ({ content: [{ type: 'text', text: JSON.stringify(value) }], structuredContent: value });
 const guarded = fn => async args => {
   try { const value = await fn(args); return result(value.source_clauses && value.document ? pages.prepare(value) : value); }

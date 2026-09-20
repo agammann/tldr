@@ -1,16 +1,16 @@
+import { isolatedSession } from './test-session.mjs';
 import { chromium } from 'playwright';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const directory = mkdtempSync(join(tmpdir(), 'terms-browser-'));
+const { directory, env } = await isolatedSession();
 const client = new Client({ name: 'real-browser-test', version: '1.0.0' });
-const transport = new StdioClientTransport({ command: process.execPath, args: [join(root, 'src/server.mjs')], env: { ...process.env, TERMS_TLDR_DATA_DIR: directory }, stderr: 'inherit' });
+const transport = new StdioClientTransport({ command: process.execPath, args: [join(root, 'src/server.mjs')], env, stderr: 'inherit' });
 let context;
 try {
   await client.connect(transport);
