@@ -6,7 +6,7 @@ You will install the MCP, connect it to your assistant, and pair the browser ext
 
 ## 1. Prepare your computer
 
-Use Node.js 22 or later, pnpm 11.19.0, Chrome or Edge, and an assistant that can launch local stdio MCP servers. An assistant that accepts only remote MCP URLs cannot use this version directly. You do not need an additional model API key for tldr.
+Use Node.js 22 or later, pnpm 11.19.0, Chrome or Edge, and an assistant that can launch local stdio MCP servers. An assistant that accepts only remote MCP URLs cannot use this version directly. This local MCP workflow does not need an additional model API key. The optional pasted-text review on the website uses your own OpenAI API key separately.
 
 Install [Node.js](https://nodejs.org/en/download), then install the project's pinned pnpm version:
 

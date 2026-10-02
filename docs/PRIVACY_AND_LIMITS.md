@@ -8,7 +8,11 @@ The extension captures rendered page text or a selection when you click it. It s
 
 Your connected assistant receives source text when it invokes a review tool. Its data policies apply. Running the MCP locally does not mean the assistant's model runs locally. Public URL review contacts the requested website without account cookies or login credentials. The MCP and extension implement no telemetry or analytics.
 
-The public website contains a predefined example and guide. It has no terms submission form and makes no AI requests. It loads fonts from Google Fonts; normal hosting and font requests are separate from the local review workflow.
+The public website contains a predefined example, guide and optional pasted-text review. Its example makes no model requests. A hosted review requires your own OpenAI API key and an explicit submission. The complete pasted text and key pass through the same-origin website server to OpenAI’s Responses API, using GPT-5.4. The app does not persist the key, terms or review or use an owner credential. It requests `store: false`; OpenAI’s API data policies still apply. Your API account is billed for requests, including ones OpenAI may have processed before you cancel.
+
+The website keeps its draft, key and result in page memory. Clear, reload and leaving the page erase them, including a back/forward cache return. There is no account or review history for this mode. Do not paste text you are not comfortable sending through the hosting service and OpenAI. The site loads fonts from Google Fonts; normal hosting and font requests are separate from a model request.
+
+Hosted input is limited to 12,000 characters and 24 source segments. All submitted characters are included; paragraph boundaries and long-text reading breaks determine segment labels, which are not legal section numbers. Larger input is rejected before a provider call. No server-side URL fetching, linked policy retrieval or baseline comparison occurs. The response must explain each supplied segment in order and include an exact quote from it; missing coverage and invalid quotes are rejected. These structural checks cannot establish semantic accuracy, preservation of every exception or completeness of the entire agreement. Read the full original text alongside every explanation.
 
 ## Local storage
 

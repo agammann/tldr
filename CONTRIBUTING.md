@@ -43,9 +43,11 @@ The variable also applies to `pnpm test:live-browser`. Other platforms need an e
 | `scripts/` | Demo and optional browser/live checks. |
 | `examples/` | Fictional terms and a historical verification screenshot. |
 | `docs/` | Installation, troubleshooting, reference and dated evidence. |
-| `website/` | Static source for the separately published public website. |
+| `website/` | Public website assets, optional visitor-key review route and dependency-free Worker build. |
 
 Updating `website/` on GitHub does not deploy the public site. See its [README](website/README.md).
+
+For the website, run `pnpm build:website` then `pnpm preview:website`. The preview listens only on `127.0.0.1:5192`; `PORT` can select another local port. Hosted route tests use controlled responses and make no model calls. Live review quality must be checked separately with a visitor-owned verification key and fictional terms, including amounts, negations, exceptions, opt-outs and cross-references. Keep credentials and private evaluation artifacts outside the repository.
 
 ## Before opening a pull request
 
