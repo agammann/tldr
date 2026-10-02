@@ -4,6 +4,17 @@
 
 ## Current evidence
 
+On October 2, 2026 UTC, MCP **0.1.4** and extension **0.1.3** passed a fresh Windows review with Node 24.19.0 and pnpm 11.19.0:
+
+- All 16 controlled tests passed. The lockfile now uses fast-uri 3.1.8 and ip-address 10.7.2; the dependency audit reported no known advisories. CI now includes that audit.
+- The extension passed controlled browser checks in Chrome 154.0.8037.95 and Edge 154.0.4258.48, including actual capture, changed prices, excluded form values, partial captures, pairing errors, and disconnected guidance.
+- Six actual public URL reviews retrieved every source page and repeated as unchanged: Dropbox, Spotify, GitHub, Cloudflare, Mozilla, and the MCP Registry. Chrome and Edge also captured Dropbox, Spotify, and GitHub through the real extension action permission flow, with no truncation.
+- All five tools passed through **Codex app-server 0.159.2** in an ephemeral test session. Native host calls retrieved all 180 clauses of a fictional paginated review, detected a supplied price change, fetched the public Mozilla page, and read an actual Chrome extension capture of Dropbox. The capture returned 26,315 characters and all 92 clauses across two pages; a repeat reported unchanged.
+
+The native host check used an isolated pairing and browser profile without changing the user's persistent MCP configuration. It exercised tool calls, not a model-generated summary or a legal accuracy benchmark. Third-party terms and pairing data remain outside the repository. Earlier records below are preserved as dated evidence.
+
+## September 19 evidence
+
 Current code: MCP **0.1.4**, extension **0.1.3**. Latest checks ran September 19, 2026, Pacific time (September 20 UTC). Existing default pairing, history and bridge protocol compatibility are preserved.
 
 | Check | Recorded result | Scope |
