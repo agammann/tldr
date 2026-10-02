@@ -2,11 +2,19 @@
 
 **Understand the terms before you agree.**
 
-[Website and interactive example](https://terms-tldr.alx21.chatgpt.site) · [Installation guide](docs/INSTALL.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
+[Website, example and pasted-text review](https://terms-tldr.alx21.chatgpt.site) · [Installation guide](docs/INSTALL.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
 
 tldr connects the terms page you choose in Chrome or Edge to your AI assistant. It supplies source clauses and changes since your last complete review, so your assistant can explain commitments and possible red flags with citations.
 
-**The website is a public example and guide. To review your own pages, install the local MCP server and browser extension.** The website does not accept terms submissions. The extension is installed from this repository, not a browser store. Your assistant writes the summary; tldr requires no separate model API key.
+**Choose a short pasted-text review on the website, or install the local MCP for browser capture and change tracking.** The optional website review uses GPT-5.4 with your own OpenAI API key and API billing. The local MCP uses your connected assistant and requires no separate model key. The extension is installed from this repository, not a browser store.
+
+## Try a short agreement
+
+Open [Review pasted terms](https://terms-tldr.alx21.chatgpt.site/#review-your-terms), paste the wording, enter your own OpenAI API key, read the hosted review notice and submit. The website explains each source segment, shows qualifications and an exact quotation, and lets you inspect the full original text. It accepts up to 12,000 characters and 24 segments; oversized input is rejected, never silently shortened. Segment labels are reading references, not legal section numbers.
+
+Your complete pasted text and key pass through the site’s server to OpenAI. The app keeps them only in memory and does not save review history. Clear, leaving the page or reloading removes the key and page content. Your API account pays for submitted requests. Canceling stops this page waiting, but OpenAI may already have processed the request. The example remains available without a key or model call.
+
+Coverage and exact-quotation checks detect missing segments and mismatched quotes; **they cannot prove that an explanation preserves the meaning or every exception**. Inspect the original wording. Linked policies are not fetched, earlier versions are not compared, and the website does not advise signing or assess enforceability. Use the local workflow below for page capture and comparison.
 
 ## Get started
 

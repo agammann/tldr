@@ -22,7 +22,9 @@
     "test:browser": "node scripts/browser-smoke.mjs",
     "test:live": "node scripts/live-check.mjs",
     "test:live-browser": "node scripts/live-browser-check.mjs",
-    "demo": "node scripts/demo.mjs"
+    "demo": "node scripts/demo.mjs",
+    "build:website": "node website/build.mjs",
+    "preview:website": "node website/preview.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
