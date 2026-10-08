@@ -4,27 +4,33 @@
 
 ## Run locally
 
-Use Node.js 22 or later and pnpm 11.19.0. From the repository root:
+Use Node.js 24 or later and pnpm 11.19.0. From the repository root:
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm test
+pnpm check
+pnpm exec playwright install chromium
+pnpm test:browser
+pnpm test:website
+pnpm test:consumer
 ```
 
-The controlled tests exercise evidence preservation, comparisons, history, network validation, authentication, extension pairing and real MCP stdio calls. They use isolated state and ports and do not require third party terms pages. CI defines Node 22 and 24 on Windows and Ubuntu.
+The controlled tests exercise evidence preservation, comparisons, history, network validation, authentication, extension pairing and real MCP stdio calls. They use isolated state and ports and do not require third party terms pages. CI defines Node 24 on Windows and Ubuntu.
 
 ## Optional integration checks
 
-The demo and integration checks automatically use temporary state, a fresh pairing and an available loopback port. They override both current and legacy environment variables in the child MCP. Your everyday tldr connection can remain running. Browser checks use temporary profiles; they do not change your saved extension settings or baselines. Temporary state remains in your operating system's temporary directory after the check; only public or fictional pages should be used in these scripts.
+The demo and integration checks automatically use temporary state, a fresh pairing and an available loopback port. They override both current and legacy environment variables in the child MCP. Your everyday tldr connection can remain running. Browser checks use temporary profiles; they do not change your saved extension settings or baselines. The controlled browser and consumer checks remove their private generated state when they finish. Older demo and live checks can leave temporary state in your operating system's temporary directory; use only public or fictional pages in those scripts.
 
 | Command | What it checks |
 | :--- | :--- |
 | `pnpm demo` | Prints evidence for fictional terms through the SDK. It does not generate an AI summary. |
-| `pnpm test:browser` | Checks capture, price changes, policy links, password input exclusion, partial captures, empty pages, wrong pairing and disconnected guidance. Saves a screenshot under `.local`. |
+| `pnpm test:browser` | Loads the actual extension and checks capture, matching service/extension versions, price changes, policy links, password input exclusion, partial captures, empty pages, wrong pairing and disconnected guidance. Saves a report and screenshot under `test-results/extension`. |
+| `pnpm test:website` | Exercises the built website's consent, cancellation, citations, quotation checks, clearing, reload and narrow layouts without a model call. |
+| `pnpm test:consumer` | Calls all five MCP tools through the SDK and checks source paging, revisions, process restart and backup restoration. |
 | `pnpm test:live` | Fetches real public terms pages and reads all source pages. Requires network access. |
 | `pnpm test:live-browser` | Exercises extension action permission and capture on public pages. Requires network access. |
 
-On Windows the browser scripts default to Edge. To select Chrome in PowerShell:
+The controlled browser check defaults to the Chromium installed by Playwright. The older live-browser script defaults to Edge on Windows. To select Chrome in PowerShell:
 
 ```powershell
 $env:BROWSER_EXECUTABLE = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
@@ -55,4 +61,4 @@ Keep changes scoped and explain the behavior they fix. Run `pnpm test` for runti
 
 Never commit `.local`, tokens, credentials, real captured terms or machine specific configuration. Report bugs with versions, reproduction steps and a public URL or fictional input. [Open an issue](https://github.com/agammann/tldr/issues) before proposing a major feature.
 
-No project redistribution license has been assigned. This guide does not grant additional licensing rights.
+The project is available under the [MIT license](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.md) when redistributing installed dependencies.

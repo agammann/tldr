@@ -2,13 +2,17 @@ import { isolatedSession } from './test-session.mjs';
 import { chromium } from 'playwright';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { join, resolve, sep } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
+const extensionDirectory = process.env.TLDR_TEST_EXTENSION_DIRECTORY || join(root, 'extension');
+const output = join(root, 'test-results/extension');
+mkdirSync(output, { recursive: true });
 const { directory, env } = await isolatedSession();
 const client = new Client({ name: 'real-browser-test', version: '1.0.0' });
 const transport = new StdioClientTransport({ command: process.execPath, args: [join(root, 'src/server.mjs')], env, stderr: 'inherit' });
@@ -18,10 +22,11 @@ await new Promise(resolve => web.listen(0, '127.0.0.1', resolve));
 let context;
 try {
   await client.connect(transport);
-  const executablePath = process.env.BROWSER_EXECUTABLE || (process.platform === 'win32' ? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' : undefined);
+  assert.equal(client.getServerVersion().version, JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version);
+  const executablePath = process.env.BROWSER_EXECUTABLE || chromium.executablePath();
   context = await chromium.launchPersistentContext(join(directory, 'browser'), { executablePath, headless: true, ignoreDefaultArgs: ['--disable-extensions'], args: ['--enable-unsafe-extension-debugging'] });
   const browserCdp = await context.browser().newBrowserCDPSession();
-  const { id } = await browserCdp.send('Extensions.loadUnpacked', { path: join(root, 'extension') });
+  const { id } = await browserCdp.send('Extensions.loadUnpacked', { path: extensionDirectory });
   assert.match(id, /^[a-p]{32}$/);
   const target = await context.newPage();
   await target.goto(`http://127.0.0.1:${web.address().port}/terms`);
@@ -33,6 +38,7 @@ try {
     chrome.storage.local.get = async (...args) => { await gate; return get(...args); };
   });
   await popup.goto(`chrome-extension://${id}/popup.html`);
+  assert.equal(await popup.evaluate(() => chrome.runtime.getManifest().version), JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version);
   await popup.locator('summary').click();
   await popup.locator('#pair').setInputFiles(join(directory, 'pairing.json'));
   await popup.evaluate(() => window.releaseSettings());
@@ -93,12 +99,18 @@ try {
   await popup.getByText('Connected settings saved.', { exact: false }).waitFor();
   await capturePage(/Page captured/);
   await popup.setViewportSize({ width: 350, height: 730 });
-  mkdirSync(join(root, '.local'), { recursive: true });
-  await popup.screenshot({ path: join(root, '.local/extension-verified.png') });
+  await popup.screenshot({ path: join(output, 'extension-verified.png') });
   await client.close();
   await capturePage(/Local MCP is not reachable/);
   await popup.locator('#forget').click();
   await popup.getByText('Connection forgotten.', { exact: true }).waitFor();
   await capturePage(/Choose your local pairing/);
-  console.log(JSON.stringify({ browser_version: context.browser().version(), extension_loaded: true, real_capture: true, mcp_review: true, first_baseline: true, changed_price_detected: true, password_value_excluded: true, terms_link_discovered: true, partial_captures_preserve_baseline: true, empty_capture_preserves_snapshot: true, wrong_pairing_rejected: true, disconnected_and_unpaired_guidance: true }));
-} finally { await context?.close(); await client.close(); await new Promise(resolve => web.close(resolve)); }
+  const report = { browser_version: context.browser().version(), service_version: client.getServerVersion().version, extension_version: JSON.parse(readFileSync(join(extensionDirectory, 'manifest.json'), 'utf8')).version, extension_loaded: true, real_capture: true, mcp_review: true, first_baseline: true, changed_price_detected: true, password_value_excluded: true, terms_link_discovered: true, partial_captures_preserve_baseline: true, empty_capture_preserves_snapshot: true, wrong_pairing_rejected: true, disconnected_and_unpaired_guidance: true };
+  writeFileSync(join(output, 'report.json'), JSON.stringify(report, null, 2));
+  console.log(JSON.stringify(report));
+} finally {
+  await context?.close(); await client.close(); await new Promise(resolve => web.close(resolve));
+  const owned = resolve(directory), temporaryRoot = resolve(tmpdir()) + sep;
+  if (!owned.startsWith(temporaryRoot) || !owned.startsWith(join(resolve(tmpdir()), 'tldr-check-'))) throw Error('Unexpected private test directory.');
+  rmSync(owned, { recursive: true, force: true });
+}

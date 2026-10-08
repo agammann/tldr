@@ -28,6 +28,9 @@ export class History {
     const file = join(this.directory, 'history.json');
     let records = {};
     try { records = JSON.parse(readFileSync(file, 'utf8')); } catch (e) { if (e.code !== 'ENOENT') throw new Error('Saved history could not be read. Preserve it and repair the file before comparing.'); }
+    if (!records || typeof records !== 'object' || Array.isArray(records) || Object.entries(records).some(([id, value]) =>
+      !/^[a-f0-9]{64}$/.test(id) || !value || typeof value !== 'object' || typeof value.text !== 'string' || !value.text.trim() || typeof value.url !== 'string' || typeof value.saved_at !== 'string' || !Number.isFinite(Date.parse(value.saved_at)) || (value.extraction !== undefined && typeof value.extraction !== 'string')
+    )) throw new Error('Saved history could not be read. Preserve it and restore a valid backup before comparing.');
     const previous = records[key];
     report.changes = previous && previous.extraction !== metadata.extraction
       ? { status: 'capture_method_changed', interpretation: 'The extraction method differs from the previous review. No document change is inferred; this creates a new baseline for the current method.' }
