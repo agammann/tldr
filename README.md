@@ -18,17 +18,19 @@ Coverage and exact-quotation checks detect missing segments and mismatched quote
 
 ## Get started
 
-You need **Node.js 22 or later**, **pnpm 11.19.0**, **Chrome or Edge**, and an assistant that supports **local stdio MCP servers**. Codex with Chrome has been verified. Other assistants may use different configuration formats.
+Download `tldr_1.0.0_source.zip` and `SHA256SUMS` from the [v1 release](https://github.com/agammann/tldr/releases/tag/v1.0.0). Verify its SHA256 before extracting. The source ZIP contains the matching extension in `extension/`. The separate `tldr_1.0.0_extension.zip` contains that same folder for extension upgrades; the local MCP service is still required. See the [v1 support and verification guide](docs/STABILITY.md).
+
+You need **Node.js 24 or later**, **pnpm 11.19.0**, **Chrome or Edge**, and an assistant that supports **local stdio MCP servers**. Codex with Chrome has been verified. Other assistants may use different configuration formats.
 
 1. Get the project and install its dependencies:
 
    ```sh
-   git clone https://github.com/agammann/tldr.git
+   git clone --branch v1.0.0 https://github.com/agammann/tldr.git
    cd tldr
    pnpm install --frozen-lockfile
    ```
 
-   No Git? [Download the ZIP](https://github.com/agammann/tldr/archive/refs/heads/main.zip), extract it, and open a terminal in the folder containing `package.json`. Run the install command there.
+   No Git? [Download the v1 source ZIP](https://github.com/agammann/tldr/releases/tag/v1.0.0), extract it, and open a terminal in the folder containing `package.json`. Run the install command there.
 
 2. [Connect the MCP to your assistant](docs/INSTALL.md#2-connect-your-assistant). The assistant starts the server. Use the full path to `src/server.mjs`.
 3. [Load and pair the extension](docs/INSTALL.md#3-load-and-pair-the-extension). Import the `.local/pairing.json` file created when the MCP starts.
@@ -70,6 +72,6 @@ Read [privacy and limitations](docs/PRIVACY_AND_LIMITS.md) for storage, deletion
 
 ## Project status
 
-MCP **0.1.4** · Extension **0.1.3**. The public repository is [agammann/tldr](https://github.com/agammann/tldr). The website retains its original `terms-tldr` address. Existing installation folders and pairing files remain compatible; see [updating an installation](docs/INSTALL.md#updating-an-existing-installation).
+MCP **1.0.0** · Extension **1.0.0**. The public repository is [agammann/tldr](https://github.com/agammann/tldr). The website retains its original `terms-tldr` address. Existing installation folders and pairing files remain compatible; see [updating an installation](docs/INSTALL.md#updating-an-existing-installation).
 
-The source is public, but no project redistribution license has been assigned. Dependency licenses remain with their respective authors. The package's `private` flag prevents accidental npm publication; it does not describe GitHub visibility.
+The project source is [MIT licensed](LICENSE). Dependency licenses remain with their respective authors; see [third-party notices](THIRD_PARTY_NOTICES.md). The package's `private` flag prevents accidental npm publication; it does not describe GitHub visibility.

@@ -1,6 +1,6 @@
 {
   "name": "tldr-mcp",
-  "version": "0.1.4",
+  "version": "1.0.0",
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "repository": {
@@ -14,7 +14,7 @@
   "type": "module",
   "description": "Clause cited terms review for MCP assistants",
   "engines": {
-    "node": ">=22"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "start": "node src/server.mjs",
@@ -24,15 +24,20 @@
     "test:live-browser": "node scripts/live-browser-check.mjs",
     "demo": "node scripts/demo.mjs",
     "build:website": "node website/build.mjs",
-    "preview:website": "node website/preview.mjs"
+    "preview:website": "node website/preview.mjs",
+    "check": "pnpm test && pnpm build:website && pnpm audit --audit-level=low",
+    "test:website": "node scripts/website-smoke.mjs",
+    "test:consumer": "node scripts/consumer-check.mjs",
+    "package:release": "node scripts/package-release.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "ipaddr.js": "^2.2.0",
     "linkedom": "^0.18.12",
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "playwright": "1.62.1"
-  }
+    "playwright": "1.63.0"
+  },
+  "license": "MIT"
 }

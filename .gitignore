@@ -4,3 +4,6 @@ coverage/
 .local/
 mcp-config.json
 website/dist/
+test-results/
+reports/
+release-artifacts/

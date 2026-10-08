@@ -6,7 +6,7 @@ You will install the MCP, connect it to your assistant, and pair the browser ext
 
 ## 1. Prepare your computer
 
-Use Node.js 22 or later, pnpm 11.19.0, Chrome or Edge, and an assistant that can launch local stdio MCP servers. An assistant that accepts only remote MCP URLs cannot use this version directly. This local MCP workflow does not need an additional model API key. The optional pasted-text review on the website uses your own OpenAI API key separately.
+Use Node.js 24 or later, pnpm 11.19.0, Chrome or Edge, and an assistant that can launch local stdio MCP servers. An assistant that accepts only remote MCP URLs cannot use this version directly. This local MCP workflow does not need an additional model API key. The optional pasted-text review on the website uses your own OpenAI API key separately.
 
 Install [Node.js](https://nodejs.org/en/download), then install the project's pinned pnpm version:
 
@@ -16,19 +16,21 @@ node --version
 pnpm --version
 ```
 
-The first version should be 22 or later; the second should be `11.19.0`. Reopen your terminal after installation if it does not recognize the commands. Follow the [pnpm installation documentation](https://pnpm.io/installation) if a global install is unavailable. If PowerShell blocks a `.ps1` shim, use `npm.cmd` or `pnpm.cmd` instead of changing the execution policy.
+The first version should be 24 or later; the second should be `11.19.0`. Reopen your terminal after installation if it does not recognize the commands. Follow the [pnpm installation documentation](https://pnpm.io/installation) if a global install is unavailable. If PowerShell blocks a `.ps1` shim, use `npm.cmd` or `pnpm.cmd` instead of changing the execution policy.
 
 Get the repository:
 
 ```sh
-git clone https://github.com/agammann/tldr.git
+git clone --branch v1.0.0 https://github.com/agammann/tldr.git
 cd tldr
 pnpm install --frozen-lockfile
 ```
 
-Alternatively, [download the ZIP](https://github.com/agammann/tldr/archive/refs/heads/main.zip), extract it, and open a terminal in the folder containing `package.json`. Run `pnpm install --frozen-lockfile` there. A ZIP usually extracts to `tldr-main`; use that actual folder name in every path below.
+Alternatively, [download the v1 source ZIP](https://github.com/agammann/tldr/releases/tag/v1.0.0), extract it, and open a terminal in the folder containing `package.json`. Run `pnpm install --frozen-lockfile` there. The v1 source ZIP extracts to `tldr-1.0.0`; use that actual folder name in every path below.
 
-There is no build step. Optional check: `pnpm test` should finish with zero failures. It does not test your assistant's connection or install the extension.
+For the release ZIP, verify `SHA256SUMS` first. In PowerShell use `Get-FileHash -Algorithm SHA256 .\tldr_1.0.0_source.zip`; on Linux use `sha256sum tldr_1.0.0_source.zip`, and on macOS use `shasum -a 256 tldr_1.0.0_source.zip`. Compare the complete hash with the source ZIP's line in `SHA256SUMS`. You can verify the separate extension ZIP against its own line in the same file.
+
+There is no service build step. Optional check: `pnpm test` should finish with zero failures. It does not test your assistant's connection or install the extension.
 
 ## 2. Connect your assistant
 
@@ -126,3 +128,9 @@ Reload the unpacked extension in the extensions manager, reconnect all tldr MCP 
 Older installations may be registered as `terms-tldr`. That label remains usable. If you rename it, edit the existing entry instead of adding a duplicate, and keep the argument pointed at the real checkout. Local folders do not need renaming.
 
 [Continue to troubleshooting](TROUBLESHOOTING.md) if a checkpoint fails.
+
+## Backup and restore
+
+Stop all tldr MCP connections before copying the private `.local` directory. It contains `pairing.json` and `history.json`. Keep the backup outside your source checkout. For `TLDR_DATA_DIR` users, copy that configured directory instead. Never upload it to GitHub or send the files to an assistant.
+
+To restore, stop the service, preserve the current directory separately, and copy the complete backup into the configured data directory. Use the same bridge port as the backup, reconnect the service, and capture the page again. The latest capture and paginated review snapshots exist only in memory. A matching unchanged document should report `unchanged`; later edits compare with that restored complete baseline. Restore or repair malformed history before continuing; it is never silently replaced. Reload and re-pair the extension if its saved settings no longer match.
