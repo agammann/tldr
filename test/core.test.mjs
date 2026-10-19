@@ -7,6 +7,7 @@ import { reviewText, MAX_TEXT } from '../src/review.mjs';
 import { compareTexts, History } from '../src/history.mjs';
 import { validateUrl, isPublicAddress, resolvePublic, extractPage } from '../src/fetch.mjs';
 import { startBridge, loadPairing } from '../src/bridge.mjs';
+import { bridgeRequest } from '../extension/bridge-protocol.mjs';
 
 const fixture = readFileSync(new URL('../examples/fictional-terms.txt', import.meta.url), 'utf8');
 test('all terms and exceptions are preserved in cited evidence', () => {
@@ -62,16 +63,16 @@ test('HTML extraction retains terms, tables and linked policies, removes scripts
   assert.ok(!result.text.includes('ignore all instructions'));
   assert.equal(result.links[0].href, '/privacy');
 });
-test('bridge requires token, rejects website origins and validates capture', async t => {
+test('bridge requires encrypted pairing, rejects website origins and validates capture', async t => {
   const bridge = await startBridge({ token: 'a'.repeat(64), port: 0 });
   t.after(() => new Promise(resolve => bridge.server.close(resolve)));
-  const endpoint = `http://127.0.0.1:${bridge.server.address().port}/capture`;
+  const endpoint = `http://127.0.0.1:${bridge.server.address().port}`;
   const capture = { url: 'https://example.com', title: 'Demo', text: fixture, links: [], captured_at: new Date().toISOString(), truncated: false, selection: false };
   const headers = { Authorization: `Bearer ${'a'.repeat(64)}`, 'Content-Type': 'application/json' };
-  assert.equal((await fetch(endpoint, { method: 'POST', body: '{}' })).status, 401);
-  assert.equal((await fetch(endpoint, { method: 'POST', headers: { ...headers, Origin: 'https://evil.example' }, body: JSON.stringify(capture) })).status, 403);
-  assert.equal((await fetch(endpoint, { method: 'POST', headers, body: '{}' })).status, 400);
-  assert.equal((await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(capture) })).status, 200);
+  assert.equal((await fetch(endpoint+'/capture', { method: 'POST', headers, body: JSON.stringify(capture) })).status, 401, 'v1 plaintext clients must upgrade');
+  assert.equal((await fetch(endpoint+'/challenge', { headers: { Origin: 'https://evil.example' } })).status, 403);
+  await assert.rejects(bridgeRequest({endpoint,token:'a'.repeat(64)},'capture',{}), /Capture failed/);
+  assert.equal((await bridgeRequest({endpoint,token:'a'.repeat(64)},'capture',capture)).captured, true);
   assert.equal(bridge.latest().text, fixture);
 });
 test('pairing token is stable and stored locally without logging it', () => {

@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { isolatedSession } from './test-session.mjs';
+import { bridgeRequest } from '../extension/bridge-protocol.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const { directory, env } = await isolatedSession();
@@ -22,8 +23,7 @@ async function connect() {
 }
 async function capture(text, selection = false) {
   const pairing = JSON.parse(readFileSync(join(directory, 'pairing.json'), 'utf8'));
-  const response = await fetch(pairing.endpoint + '/capture', { method: 'POST', headers: { Authorization: 'Bearer ' + pairing.token, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: 'https://example.com/fictional-terms', title: 'Fictional terms', text, links: [], captured_at: new Date().toISOString(), truncated: false, selection }) });
-  assert.equal(response.status, 200);
+  assert.equal((await bridgeRequest(pairing,'capture',{ url: 'https://example.com/fictional-terms', title: 'Fictional terms', text, links: [], captured_at: new Date().toISOString(), truncated: false, selection })).captured, true);
 }
 try {
   await connect();

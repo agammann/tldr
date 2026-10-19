@@ -21,14 +21,14 @@ The first version should be 24 or later; the second should be `11.19.0`. Reopen 
 Get the repository:
 
 ```sh
-git clone --branch v1.0.0 https://github.com/agammann/tldr.git
+git clone --branch v1.0.1 https://github.com/agammann/tldr.git
 cd tldr
 pnpm install --frozen-lockfile
 ```
 
-Alternatively, [download the v1 source ZIP](https://github.com/agammann/tldr/releases/tag/v1.0.0), extract it, and open a terminal in the folder containing `package.json`. Run `pnpm install --frozen-lockfile` there. The v1 source ZIP extracts to `tldr-1.0.0`; use that actual folder name in every path below.
+Alternatively, [download the v1 source ZIP](https://github.com/agammann/tldr/releases/tag/v1.0.1), extract it, and open a terminal in the folder containing `package.json`. Run `pnpm install --frozen-lockfile` there. The v1 source ZIP extracts to `tldr-1.0.1`; use that actual folder name in every path below.
 
-For the release ZIP, verify `SHA256SUMS` first. In PowerShell use `Get-FileHash -Algorithm SHA256 .\tldr_1.0.0_source.zip`; on Linux use `sha256sum tldr_1.0.0_source.zip`, and on macOS use `shasum -a 256 tldr_1.0.0_source.zip`. Compare the complete hash with the source ZIP's line in `SHA256SUMS`. You can verify the separate extension ZIP against its own line in the same file.
+For the release ZIP, verify `SHA256SUMS` first. In PowerShell use `Get-FileHash -Algorithm SHA256 .\tldr_1.0.1_source.zip`; on Linux use `sha256sum tldr_1.0.1_source.zip`, and on macOS use `shasum -a 256 tldr_1.0.1_source.zip`. Compare the complete hash with the source ZIP's line in `SHA256SUMS`. You can verify the separate extension ZIP against its own line in the same file.
 
 There is no service build step. Optional check: `pnpm test` should finish with zero failures. It does not test your assistant's connection or install the extension.
 
@@ -128,6 +128,12 @@ Reload the unpacked extension in the extensions manager, reconnect all tldr MCP 
 Older installations may be registered as `terms-tldr`. That label remains usable. If you rename it, edit the existing entry instead of adding a duplicate, and keep the argument pointed at the real checkout. Local folders do not need renaming.
 
 [Continue to troubleshooting](TROUBLESHOOTING.md) if a checkpoint fails.
+
+## Security update and pairing rotation
+
+For version 1.0.1, update the local MCP source and the unpacked extension together. Stop every MCP session, install the new source dependencies, reload the unpacked extension in the browser, and reconnect all assistant sessions. Existing pairing files remain readable. Older clients use a plaintext protocol and are deliberately rejected; do not keep an old extension connected to a new service or the reverse.
+
+If an unrelated process ever owned your bridge port during an earlier capture or shared-session read, rotate the pairing. Stop every MCP session first, back up your private history, then delete only `pairing.json` from your configured local data directory. Restart the updated service to create a new random pairing, choose **Forget connection** in the extension, and import the new pairing file. Do not delete or publish the review history. Treat old pairing backups as sensitive and keep them offline or remove them securely. A successful new connection does not prove the old token was never exposed.
 
 ## Backup and restore
 
