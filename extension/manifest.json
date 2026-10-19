@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "tldr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Send the page you choose to your local terms review MCP.",
   "permissions": [
     "activeTab",

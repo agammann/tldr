@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { bridgeRequest } from '../extension/bridge-protocol.mjs';
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -36,8 +37,7 @@ test('real stdio client discovers and invokes review, comparison, browser captur
   const pairing = JSON.parse(readFileSync(join(data, 'pairing.json'), 'utf8'));
   const capture = { url: 'https://example.com/terms', title: 'Fictional', text: 'You pay $12 per month.', links: [], captured_at: new Date().toISOString(), truncated: false, selection: false };
   const send = async value => {
-    const response = await fetch(`${pairing.endpoint}/capture`, { method: 'POST', headers: { Authorization: `Bearer ${pairing.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(value) });
-    assert.equal(response.status, 200);
+    assert.equal((await bridgeRequest(pairing,'capture',value)).captured, true);
   };
   await send(capture);
   assert.equal((await client.callTool({ name: 'review_current_page', arguments: {} })).structuredContent.changes.status, 'first_review');

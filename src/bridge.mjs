@@ -1,9 +1,10 @@
 import http from 'node:http';
-import { timingSafeEqual, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod';
 import { MAX_TEXT } from './review.mjs';
+import { BRIDGE_PROTOCOL, MAX_ENVELOPE, MAX_CAPTURE_BYTES, bridgeRequest, open, seal } from '../extension/bridge-protocol.mjs';
 
 export const captureSchema = z.object({
   url: z.string().url().max(2048).refine(v => /^https?:\/\//.test(v)),
@@ -30,7 +31,8 @@ export function loadPairing(directory, port = 43187) {
 
 export async function startBridge({ token, port = 43187 }) {
   let latest = null;
-  const server = http.createServer((request, response) => {
+  const challenges = new Map();
+  async function handle(request, response) {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Connection', 'close');
     const host = request.headers.host;
@@ -40,35 +42,53 @@ export async function startBridge({ token, port = 43187 }) {
     if (origin) {
       response.setHeader('Access-Control-Allow-Origin', origin);
       response.setHeader('Vary', 'Origin');
-      response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-      response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+      response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     }
     if (request.method === 'OPTIONS') { response.writeHead(204).end(); return; }
-    const expected = Buffer.from(`Bearer ${token}`);
-    const supplied = Buffer.from(request.headers.authorization || '');
-    if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) { response.writeHead(401).end(); return; }
-    // Other MCP sessions using the same pairing may read the in-memory snapshot.
-    if (request.url === '/capture' && request.method === 'GET' && !origin) {
-      response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ protocol: 'terms-tldr-bridge-v1', capture: latest }));
+    // Plaintext v1 clients must upgrade; no raw bearer route remains.
+    if (request.headers.authorization || request.url === '/capture') { response.writeHead(401).end(); return; }
+    if (request.url === '/challenge' && request.method === 'GET') {
+      const now = Date.now();
+      for (const [nonce, expires] of challenges) if (expires <= now) challenges.delete(nonce);
+      if (challenges.size >= 256) { response.writeHead(429).end(); return; }
+      const challenge = randomBytes(32).toString('hex');
+      challenges.set(challenge, now + 10000);
+      response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ protocol: BRIDGE_PROTOCOL, challenge }));
       return;
     }
-    if (request.url !== '/capture' || request.method !== 'POST') { response.writeHead(404).end(); return; }
+    if (request.url !== '/bridge' || request.method !== 'POST') { response.writeHead(404).end(); return; }
     if (!request.headers['content-type']?.startsWith('application/json')) { response.writeHead(415).end(); return; }
     let bytes = 0;
     const chunks = [];
-    request.on('data', chunk => {
+    for await (const chunk of request) {
       bytes += chunk.length;
-      if (bytes > 1200000) { response.writeHead(413).end(); request.destroy(); }
-      else chunks.push(chunk);
-    });
-    request.on('error', () => {});
-    request.on('end', () => {
-      if (bytes > 1200000) return;
-      try {
-        const capture = captureSchema.parse(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+      if (bytes > MAX_ENVELOPE) { response.writeHead(413).end(); request.destroy(); return; }
+      chunks.push(chunk);
+    }
+    const envelope = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    const expires = challenges.get(envelope?.challenge);
+    challenges.delete(envelope?.challenge); // One use, including failed authentication.
+    if (!expires || expires <= Date.now()) { response.writeHead(401).end(); return; }
+    let payload;
+    try { payload = await open(token, 'request', envelope.challenge, envelope); }
+    catch { response.writeHead(401).end(); return; }
+    let result;
+    if (payload?.operation === 'capture' && Object.keys(payload).sort().join(',') === 'capture,operation') {
+        const capture = captureSchema.parse(payload.capture);
+        if (Buffer.byteLength(JSON.stringify(capture), 'utf8') > MAX_CAPTURE_BYTES) { response.writeHead(413).end(); return; }
         latest = { ...capture, received_at: new Date().toISOString() };
-        response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ captured: true }));
-      } catch { response.writeHead(400).end('Invalid page capture.'); }
+        result = { captured: true };
+    } else if (payload?.operation === 'latest' && Object.keys(payload).join(',') === 'operation' && !origin) {
+        result = { capture: latest };
+    } else { response.writeHead(400).end(); return; }
+    const encrypted = await seal(token, 'response', envelope.challenge, { operation: payload.operation, requestIv: envelope.iv, result });
+    response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(encrypted));
+  }
+  const server = http.createServer((request, response) => {
+    void handle(request, response).catch(() => {
+      if (!response.headersSent) response.writeHead(400);
+      response.end('Invalid encrypted bridge request.');
     });
   });
   server.requestTimeout = 10000;
@@ -95,23 +115,7 @@ export function sharedBridge({ token, port = 43187 }) {
       await ensureOwner();
       if (closed) throw new Error('Browser bridge is closed.');
       if (owned) return owned.latest();
-      const response = await fetch(`http://127.0.0.1:${port}/capture`, {
-        headers: { Authorization: `Bearer ${token}` },
-        redirect: 'error', signal: AbortSignal.timeout(5000)
-      });
-      if (!response.ok) {
-        await response.body?.cancel();
-        throw new Error('The capture port belongs to an incompatible bridge or a different pairing. Restart all tldr connections after updating.');
-      }
-      const chunks = [];
-      let size = 0;
-      for await (const chunk of response.body) {
-        size += chunk.length;
-        if (size > 1200000) throw new Error('Shared browser capture exceeds the response limit.');
-        chunks.push(chunk);
-      }
-      const value = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-      if (value.protocol !== 'terms-tldr-bridge-v1') throw new Error('Incompatible browser capture bridge.');
+      const value = await bridgeRequest({ token, endpoint: `http://127.0.0.1:${port}` }, 'latest');
       return value.capture === null ? null : captureSchema.extend({ received_at: z.string().datetime() }).parse(value.capture);
     },
     async close() { closed = true; await pending; if (owned) await new Promise(resolve => owned.server.close(resolve)); }

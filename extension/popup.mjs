@@ -1,4 +1,5 @@
 import { validatePairing } from './pairing.mjs';
+import { bridgeRequest } from './bridge-protocol.mjs';
 
 const status = document.querySelector('#status');
 const button = document.querySelector('#capture');
@@ -40,8 +41,8 @@ button.addEventListener('click', async () => {
       return { url: location.href, title: document.title.slice(0, 300), text: raw.slice(0, 160000), links, captured_at: new Date().toISOString(), truncated: raw.length > 160000, selection: !!selection };
     } });
     if (!capture.text.trim()) throw new Error('No readable text found. Wait for the terms to load, or select the text you want reviewed.');
-    const response = await fetch(`${pairing.endpoint}/capture`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${pairing.token}` }, body: JSON.stringify(capture), signal: AbortSignal.timeout(5000) });
-    if (!response.ok) throw new Error(`Capture failed (${response.status}). Check pairing and restart your MCP.`);
+    const result = await bridgeRequest(pairing, 'capture', capture);
+    if (result?.captured !== true) throw new Error('Capture was not acknowledged by your paired MCP.');
     status.textContent = `${capture.truncated || capture.selection ? 'Partial page captured. ' : 'Page captured. '}Ask your assistant: “Review my captured page, explain the important terms, what changed, and any red flags.”`;
   } catch (error) { status.textContent = error.message === 'Failed to fetch' ? 'Local MCP is not reachable. Start it in your assistant, then try again.' : error.message; }
   finally { button.disabled = false; }
