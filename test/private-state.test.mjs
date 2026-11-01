@@ -18,6 +18,15 @@ function grant(sid, target, permission) {
   execFileSync('icacls.exe', [target, '/grant', `*${sid}:${permission}`], { stdio: 'pipe', windowsHide: true });
 }
 
+function diagnosticAcl(target) {
+  const powershell = join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  try {
+    return execFileSync(powershell, ['-NoProfile', '-NonInteractive', '-Command',
+      'Get-Acl -LiteralPath $env:TLDR_TEST_ACL_PATH | Select-Object Owner,AccessToString | ConvertTo-Json -Compress'],
+    { env: { ...process.env, TLDR_TEST_ACL_PATH: target }, stdio: 'pipe', windowsHide: true }).toString().trim();
+  } catch { return 'ACL unavailable'; }
+}
+
 test('Windows defaults to per-user app data instead of the source checkout', { skip: process.platform !== 'win32' }, () => {
   assert.equal(defaultDataDirectory(), join(process.env.LOCALAPPDATA, 'TermsTLDR'));
 });
@@ -31,7 +40,13 @@ test('Windows private state allows an ordinary review but rejects readable files
     new History(state).review('A fictional plan costs $12 monthly. Cancel anytime.', {
       final_url: 'https://example.invalid/terms', extraction: 'synthetic_text',
     });
-    assert.doesNotThrow(() => prepareDataDirectory(state));
+    try { assert.doesNotThrow(() => prepareDataDirectory(state)); }
+    catch (error) {
+      for (const name of ['state', 'pairing.json', 'history.json']) {
+        console.error(`Synthetic ${name} ACL: ${diagnosticAcl(name === 'state' ? state : join(state, name))}`);
+      }
+      throw error;
+    }
     assert.match(readFileSync(join(state, 'history.json'), 'utf8'), /fictional plan/);
 
     grant('S-1-5-11', join(state, 'pairing.json'), '(R)');

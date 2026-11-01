@@ -34,7 +34,8 @@ if ($mode -eq 'parent') {
     }
   }
 } else {
-  if ($owner -ne $current) { throw 'Private state is owned by another account.' }
+  if (($mode -eq 'file' -and $owner -notin $allowed) -or
+      ($mode -ne 'file' -and $owner -ne $current)) { throw 'Private state is owned by another account.' }
   foreach ($rule in $acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
     if ($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Value -notin $allowed) {
       throw 'Private state grants access to another account.'
@@ -115,5 +116,5 @@ export function assertPrivateStateFile(directory, name) {
   try { stat = lstatSync(target); }
   catch (error) { if (error.code === 'ENOENT') return; throw error; }
   if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('Private tldr state must be an ordinary file.');
-  if (process.platform === 'win32') checkWindowsAcl(target, 'state');
+  if (process.platform === 'win32') checkWindowsAcl(target, 'file');
 }
