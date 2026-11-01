@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs';
+import { lstatSync, mkdirSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -91,15 +91,17 @@ export function prepareDataDirectory(directory) {
   const parent = dirname(selected);
   ordinaryDirectory(parent);
   checkWindowsAcl(parent, 'parent');
-  if (!existsSync(selected)) {
-    mkdirSync(selected, { mode: 0o700 });
-    protectEmptyDirectory(selected);
-  } else {
-    ordinaryDirectory(selected);
-    try { checkWindowsAcl(selected, 'state'); }
-    catch (error) {
-      if (readdirSync(selected).length) throw error;
-      protectEmptyDirectory(selected);
+  try { mkdirSync(selected, { mode: 0o700 }); }
+  catch (error) { if (error.code !== 'EEXIST') throw error; }
+  ordinaryDirectory(selected);
+  try { checkWindowsAcl(selected, 'state'); }
+  catch (error) {
+    if (readdirSync(selected).length) throw error;
+    try { protectEmptyDirectory(selected); }
+    catch (protectError) {
+      // Another session may have protected the empty directory and written its
+      // pairing while this one was starting. Accept only the verified ACL.
+      checkWindowsAcl(selected, 'state');
     }
   }
   assertPrivateStateFile(selected, 'pairing.json');
