@@ -33,7 +33,7 @@ You need **Node.js 24 or later**, **pnpm 11.19.0**, **Chrome or Edge**, and an a
    No Git? [Download the v1 source ZIP](https://github.com/agammann/tldr/releases/tag/v1.0.1), extract it, and open a terminal in the folder containing `package.json`. Run the install command there.
 
 2. [Connect the MCP to your assistant](docs/INSTALL.md#2-connect-your-assistant). The assistant starts the server. Use the full path to `src/server.mjs`.
-3. [Load and pair the extension](docs/INSTALL.md#3-load-and-pair-the-extension). Import the `.local/pairing.json` file created when the MCP starts.
+3. [Load and pair the extension](docs/INSTALL.md#3-load-and-pair-the-extension). Import the pairing file created when the MCP starts: `%LOCALAPPDATA%\TermsTLDR\pairing.json` on Windows, or `.local/pairing.json` in the checkout on macOS/Linux.
 4. Open the actual terms page, clear any selected text if you want a full review, and click **Capture this page**. Wait for **Page captured**, then ask your assistant:
 
    > Review my captured terms. Read all source pages. Tell me the important terms, what changed, and any red flags. Cite the clauses and preserve exceptions. State the captured URL and whether the review is complete.

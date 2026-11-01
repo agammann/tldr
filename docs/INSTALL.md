@@ -82,7 +82,7 @@ Replace the example path with your real path. On macOS/Linux, use a path such as
 
 If a desktop assistant cannot find Node, find the executable with `(Get-Command node).Source` in PowerShell or `command -v node` on macOS/Linux, then use that full path for the command. Save the settings and reconnect.
 
-**Connection checkpoint:** your assistant should expose `review_current_page`, `review_terms_url`, `review_terms_text`, `compare_terms_text` and `read_review_page`. Starting the server also creates `.local/pairing.json` in the project. The assistant runs the process; a separate terminal running `pnpm start` is unnecessary. A manually started stdio server waiting silently for input is normal.
+**Connection checkpoint:** your assistant should expose `review_current_page`, `review_terms_url`, `review_terms_text`, `compare_terms_text` and `read_review_page`. Starting the server creates `%LOCALAPPDATA%\TermsTLDR\pairing.json` on Windows or `.local/pairing.json` in the project on macOS/Linux. `TLDR_DATA_DIR` overrides this location. The assistant runs the process; a separate terminal running `pnpm start` is unnecessary. A manually started stdio server waiting silently for input is normal.
 
 ## 3. Load and pair the extension
 
@@ -90,11 +90,11 @@ If a desktop assistant cannot find Node, find the executable with `(Get-Command 
 2. Type `chrome://extensions` into Chrome's address bar, or `edge://extensions` into Edge's address bar.
 3. Enable **Developer mode**, select **Load unpacked**, and choose this project's **extension** folder. Select the folder containing `manifest.json`, not the repository root or ZIP file.
 4. Pin **tldr** from the browser's extensions menu, then open its popup.
-5. Expand **Connect to your local MCP** and choose the project's `.local/pairing.json` file.
+5. Expand **Connect to your local MCP** and choose the pairing file at the location above.
 
 The popup should say **Connected settings saved**. This confirms the settings were imported; the next capture checks whether the running MCP can actually be reached. Never paste the pairing token into a chat or issue.
 
-If `.local` is hidden, enter its full path in the file chooser. On macOS, Command+Shift+Period toggles hidden files in the chooser. If the file does not exist at all, return to the connection checkpoint above.
+On Windows, enter `%LOCALAPPDATA%\TermsTLDR\pairing.json` in the file chooser if needed. If `.local` is hidden on macOS, Command+Shift+Period toggles hidden files. If the file does not exist, return to the connection checkpoint above.
 
 The [Chrome unpacked extension guide](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked) illustrates the installation controls. Managed browsers may restrict Developer mode.
 
@@ -121,9 +121,9 @@ git pull --ff-only
 pnpm install --frozen-lockfile
 ```
 
-If Git reports local changes or divergence, keep those changes and resolve the conflict before continuing. For a ZIP installation, extract a fresh copy and update the assistant and extension paths. To retain existing pairing and history, stop all tldr MCP connections before copying the old private `.local` folder into the new project folder.
+If Git reports local changes or divergence, keep those changes and resolve the conflict before continuing. For a ZIP installation, extract a fresh copy and update the assistant and extension paths. On Windows, the new per-user data directory is independent of the source checkout; follow the migration steps below for older `.local` state. On macOS/Linux, stop all tldr MCP connections before copying a private `.local` folder into a new project folder.
 
-Reload the unpacked extension in the extensions manager, reconnect all tldr MCP sessions, and capture again. If the project stays in the same location, its pairing and history remain available.
+Reload the unpacked extension in the extensions manager, reconnect all tldr MCP sessions, and capture again. State in the configured directory remains available across source updates.
 
 Older installations may be registered as `terms-tldr`. That label remains usable. If you rename it, edit the existing entry instead of adding a duplicate, and keep the argument pointed at the real checkout. Local folders do not need renaming.
 
@@ -133,10 +133,16 @@ Older installations may be registered as `terms-tldr`. That label remains usable
 
 For version 1.0.1, update the local MCP source and the unpacked extension together. Stop every MCP session, install the new source dependencies, reload the unpacked extension in the browser, and reconnect all assistant sessions. Existing pairing files remain readable. Older clients use a plaintext protocol and are deliberately rejected; do not keep an old extension connected to a new service or the reverse.
 
+### Windows private-state migration
+
+The Windows default is now `%LOCALAPPDATA%\TermsTLDR`. The MCP verifies that its parent cannot be changed by another account and that the state directory and any existing `pairing.json` or `history.json` grant access only to your account, SYSTEM and Administrators. It refuses an unsafe directory containing state before reading it; a new or empty directory is protected before a pairing token or review is saved. An explicitly configured directory also needs a private parent. If this check fails, choose a private per-user location and inspect its permissions; do not copy an old pairing file into it.
+
+For an older checkout with `.local` state, stop all tldr MCP sessions. Treat the old pairing as potentially exposed if that directory was readable by other accounts. Start the updated MCP without `TLDR_DATA_DIR` to create a new private pairing, choose **Forget connection** in the extension, and import the new `%LOCALAPPDATA%\TermsTLDR\pairing.json`. If you need past comparisons, inspect the old `history.json` and its permissions, then copy only that file into the new private directory while the MCP is stopped. Remove access for other accounts on the copied file before reconnecting; the MCP will refuse to read it otherwise. The old source-folder data is not moved or deleted automatically. A private copy cannot undo any earlier disclosure.
+
 If an unrelated process ever owned your bridge port during an earlier capture or shared-session read, rotate the pairing. Stop every MCP session first, back up your private history, then delete only `pairing.json` from your configured local data directory. Restart the updated service to create a new random pairing, choose **Forget connection** in the extension, and import the new pairing file. Do not delete or publish the review history. Treat old pairing backups as sensitive and keep them offline or remove them securely. A successful new connection does not prove the old token was never exposed.
 
 ## Backup and restore
 
-Stop all tldr MCP connections before copying the private `.local` directory. It contains `pairing.json` and `history.json`. Keep the backup outside your source checkout. For `TLDR_DATA_DIR` users, copy that configured directory instead. Never upload it to GitHub or send the files to an assistant.
+Stop all tldr MCP connections before copying the private data directory. It contains `pairing.json` and `history.json`: `%LOCALAPPDATA%\TermsTLDR` on Windows, `.local` on macOS/Linux, or the configured `TLDR_DATA_DIR`. Keep the backup in a location with equally private permissions. Never upload it to GitHub or send the files to an assistant.
 
 To restore, stop the service, preserve the current directory separately, and copy the complete backup into the configured data directory. Use the same bridge port as the backup, reconnect the service, and capture the page again. The latest capture and paginated review snapshots exist only in memory. A matching unchanged document should report `unchanged`; later edits compare with that restored complete baseline. Restore or repair malformed history before continuing; it is never silently replaced. Reload and re-pair the extension if its saved settings no longer match.

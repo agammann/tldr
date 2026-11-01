@@ -3,12 +3,12 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { reviewText, MAX_TEXT, REVIEW_GUIDANCE } from './review.mjs';
 import { fetchTerms } from './fetch.mjs';
-import { fileURLToPath } from 'node:url';
 import { History, compareTexts } from './history.mjs';
 import { loadPairing, sharedBridge } from './bridge.mjs';
 import { ReviewPages } from './pages.mjs';
+import { defaultDataDirectory, prepareDataDirectory } from './private-state.mjs';
 
-const localDirectory = process.env.TLDR_DATA_DIR || process.env.TERMS_TLDR_DATA_DIR || fileURLToPath(new URL('../.local/', import.meta.url));
+const localDirectory = prepareDataDirectory(defaultDataDirectory());
 const history = new History(localDirectory);
 const pages = new ReviewPages();
 const bridgePort = Number(process.env.TLDR_BRIDGE_PORT || process.env.TERMS_TLDR_BRIDGE_PORT || 43187);
