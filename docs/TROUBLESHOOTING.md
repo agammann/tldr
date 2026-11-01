@@ -7,10 +7,11 @@
 | `node` or `pnpm` is not recognized | Install the prerequisites, reopen the terminal, and run the version checks in [installation](INSTALL.md#1-prepare-your-computer). A desktop assistant may require Node's full executable path. |
 | Module or package cannot be found | Run `pnpm install --frozen-lockfile` in the folder containing `package.json`. Confirm the assistant points to that same checkout's `src/server.mjs`. |
 | No tldr tools in the assistant | Enable the local stdio server and reconnect or restart the assistant. Verify the command and absolute path. The public website address is not an MCP endpoint. |
-| `.local/pairing.json` is missing | The MCP creates it on startup. Check connection errors and the project folder. If `TLDR_DATA_DIR` is set, the file is created there instead. |
+| `pairing.json` is missing | The MCP creates it on startup in `%LOCALAPPDATA%\TermsTLDR` on Windows, checkout `.local` on macOS/Linux, or `TLDR_DATA_DIR` when set. Check startup errors and the selected directory. |
 | Extension cannot load | Extract the ZIP first and choose the `extension` folder containing `manifest.json`. Developer mode must be available in your browser. |
 | **Local MCP is not reachable** | Keep your assistant's MCP connection running, then capture again. Pair with the same checkout the assistant launches. Do not change the bridge port for the shipped extension. |
-| **Capture failed (401)** or an incompatible pairing message | Update both the MCP and extension to 1.0.1 or later, restart every MCP session, and reload the extension. Reimport the current checkout's `.local/pairing.json`; another checkout or a regenerated file may use a different token. See [pairing rotation](INSTALL.md#security-update-and-pairing-rotation) if an unknown process previously owned the port. |
+| **Capture failed (401)** or an incompatible pairing message | Update both the MCP and extension to 1.0.1 or later, restart every MCP session, and reload the extension. Reimport the current data directory's `pairing.json`; a regenerated file may use a different token. See [pairing rotation](INSTALL.md#security-update-and-pairing-rotation) if an unknown process previously owned the port. |
+| Private-state permissions are unsafe | On Windows, see [private-state migration](INSTALL.md#windows-private-state-migration). The MCP will not read an existing broadly accessible pairing or history file, or use a parent directory writable by another account. |
 | Bridge could not start on `127.0.0.1:43187` | Stop an old manually started tldr process or duplicate installation using a different pairing, then reconnect. Current sessions sharing one pairing can share the bridge. Reconnect every session after upgrading. Identify a process before stopping it; an unrelated service may own the port. |
 | **No page captured** | Open a normal website tab and click the extension's capture button. A process restart may have discarded the previous snapshot. |
 | Browser settings, store pages or a PDF cannot be captured | Use the actual HTML terms page in a regular HTTP/HTTPS tab. PDF extraction and browser internal pages are unsupported. |
@@ -28,7 +29,7 @@
 
 Use these only when you intend to discard the corresponding data. Stop all tldr MCP sessions first.
 
-To erase saved baselines, remove `.local/history.json` from the checkout. The next complete review starts a new baseline. To reset pairing, remove `.local/pairing.json`, restart the MCP, then import the newly generated file in the extension. **Forget connection** clears the extension's pairing settings but does not erase saved review history.
+To erase saved baselines, remove `history.json` from the private data directory. The next complete review starts a new baseline. To reset pairing, remove `pairing.json`, restart the MCP, then import the newly generated file in the extension. **Forget connection** clears the extension's pairing settings but does not erase saved review history.
 
 ## Report an issue
 

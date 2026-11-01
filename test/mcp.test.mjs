@@ -8,9 +8,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startBridge } from '../src/bridge.mjs';
+import { protectEmptyDirectory } from '../src/private-state.mjs';
 
 test('real stdio client discovers and invokes review, comparison, browser capture and prompt', async t => {
-  const data = mkdtempSync(join(tmpdir(), 'terms-mcp-'));
+  const parent = mkdtempSync(join(tmpdir(), 'terms-mcp-'));
+  protectEmptyDirectory(parent);
+  const data = join(parent, 'state');
   const reservation = await startBridge({ token: 'b'.repeat(64), port: 0 });
   const port = reservation.server.address().port;
   await new Promise(resolve => reservation.server.close(resolve));

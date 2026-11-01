@@ -20,10 +20,10 @@ Hosted input is limited to 12,000 characters and 24 source segments. All submitt
 | :--- | :--- |
 | Latest browser capture | Memory in the process owning the bridge, until replaced or that process exits. |
 | Paged review records | Memory in the reviewing process; up to eight records, expiring after 20 minutes. |
-| Saved baselines | Plaintext `.local/history.json`; the latest complete reviewed copy for up to 30 URLs. |
-| Browser pairing | `.local/pairing.json` and extension local storage, restricted to trusted extension contexts. |
+| Saved baselines | Plaintext `history.json` in the private data directory; the latest complete reviewed copy for up to 30 URLs. |
+| Browser pairing | `pairing.json` in the private data directory and extension local storage, restricted to trusted extension contexts. |
 
-URL keys include query strings, which may contain account information. `.local` and machine specific `mcp-config.json` are ignored by Git. Do not share those files in screenshots, issues or archives.
+The data directory is `%LOCALAPPDATA%\TermsTLDR` on Windows, the checkout's `.local` on macOS/Linux, or `TLDR_DATA_DIR` when configured. On Windows the MCP checks directory and file permissions before reading state. URL keys include query strings, which may contain account information. The checkout's `.local` and machine specific `mcp-config.json` are ignored by Git. Do not share those files in screenshots, issues or archives.
 
 The bridge listens on `127.0.0.1:43187` by default, checks the HTTP Host and rejects ordinary website Origins. Version 1.0.1 encrypts and authenticates requests and responses using the pairing key; it never sends that reusable key in HTTP headers or sends captured text in plaintext. Separate directional keys, request binding and one-use server challenges prevent an unrelated local listener from reading captures, supplying a forged response or replaying a completed request. An explicitly configured port still uses the literal loopback address; remote hosts are rejected by the extension's pairing validation. Sessions with the same pairing can read the same latest capture. Different pairings cannot. If the owner exits, a later review can start a replacement bridge, but the lost snapshot must be captured again.
 

@@ -2,9 +2,12 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startBridge } from '../src/bridge.mjs';
+import { protectEmptyDirectory } from '../src/private-state.mjs';
 
 export async function isolatedSession() {
-  const directory = mkdtempSync(join(tmpdir(), 'tldr-check-'));
+  const parent = mkdtempSync(join(tmpdir(), 'tldr-check-'));
+  protectEmptyDirectory(parent);
+  const directory = join(parent, 'state');
   // Reserve a free port, then let the child MCP own it. A conflicting process
   // fails authentication instead of receiving test captures.
   const reservation = await startBridge({ token: '0'.repeat(64), port: 0 });
