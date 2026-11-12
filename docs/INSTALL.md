@@ -21,14 +21,14 @@ The first version should be 24 or later; the second should be `11.19.0`. Reopen 
 Get the repository:
 
 ```sh
-git clone --branch v1.0.1 https://github.com/agammann/tldr.git
+git clone --branch v1.0.2 https://github.com/agammann/tldr.git
 cd tldr
 pnpm install --frozen-lockfile
 ```
 
-Alternatively, [download the v1 source ZIP](https://github.com/agammann/tldr/releases/tag/v1.0.1), extract it, and open a terminal in the folder containing `package.json`. Run `pnpm install --frozen-lockfile` there. The v1 source ZIP extracts to `tldr-1.0.1`; use that actual folder name in every path below.
+Alternatively, [download the v1 source ZIP](https://github.com/agammann/tldr/releases/tag/v1.0.2), extract it, and open a terminal in the folder containing `package.json`. Run `pnpm install --frozen-lockfile` there. The v1 source ZIP extracts to `tldr-1.0.2`; use that actual folder name in every path below.
 
-For the release ZIP, verify `SHA256SUMS` first. In PowerShell use `Get-FileHash -Algorithm SHA256 .\tldr_1.0.1_source.zip`; on Linux use `sha256sum tldr_1.0.1_source.zip`, and on macOS use `shasum -a 256 tldr_1.0.1_source.zip`. Compare the complete hash with the source ZIP's line in `SHA256SUMS`. You can verify the separate extension ZIP against its own line in the same file.
+For the release ZIP, verify `SHA256SUMS` first. In PowerShell use `Get-FileHash -Algorithm SHA256 .\tldr_1.0.2_source.zip`; on Linux use `sha256sum tldr_1.0.2_source.zip`, and on macOS use `shasum -a 256 tldr_1.0.2_source.zip`. Compare the complete hash with the source ZIP's line in `SHA256SUMS`. You can verify the separate extension ZIP against its own line in the same file.
 
 There is no service build step. Optional check: `pnpm test` should finish with zero failures. It does not test your assistant's connection or install the extension.
 

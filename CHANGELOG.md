@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.2
+
+- Update the MCP SDK, linkedom, zod, and their resolved dependencies.
+- Retain the 1.0.1 bridge protocol and matching service and extension packaging.
+
 ## 1.0.1
 
 - Encrypt and authenticate extension captures and shared MCP responses with the existing local pairing key, separate directional keys, and one-use server challenges.

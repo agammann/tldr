@@ -1,6 +1,6 @@
 # tldr v1
 
-The supported delivery is a Node.js 24 local stdio MCP service with the matching 1.0.1 unpacked Chrome or Edge extension. The service returns source clauses, topic navigation and exact text differences. Your connected assistant writes the explanation; citations help inspect it but do not guarantee its meaning.
+The supported delivery is a Node.js 24 local stdio MCP service with the matching 1.0.2 unpacked Chrome or Edge extension. The service returns source clauses, topic navigation and exact text differences. Your connected assistant writes the explanation; citations help inspect it but do not guarantee its meaning.
 
 Version 1.0.1 adds authenticated encryption to the loopback bridge so an unrelated listener cannot receive a reusable pairing credential, read captured text or supply a forged shared-session capture. Both components must be upgraded together. Existing pairing file syntax remains supported. See [upgrade and rotation](INSTALL.md#security-update-and-pairing-rotation), including the historical-exposure limit.
 
