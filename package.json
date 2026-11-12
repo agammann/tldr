@@ -31,7 +31,7 @@
     "package:release": "node scripts/package-release.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "ipaddr.js": "^2.2.0",
     "linkedom": "^0.18.15",
     "zod": "^4.6.7"
