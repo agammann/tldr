@@ -31,6 +31,10 @@ jobs:
           python-version: "3.12"
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Check private state with a separate Windows account
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/test-windows-accounts.ps1
       - if: always()
         shell: bash
         run: |
