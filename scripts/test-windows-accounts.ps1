@@ -25,12 +25,15 @@ try { [System.IO.File]::WriteAllText('$parent\state\injected.json', 'fictional')
 catch [System.UnauthorizedAccessException] { }
 exit 0
 "@
-$encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($script))
+$probe = Join-Path $parent 'account-probe.ps1'
+[System.IO.File]::WriteAllText($probe, $script)
+& icacls.exe $probe /grant '*S-1-5-11:(R)' | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'Could not grant the test identity read access to the synthetic probe.' }
 try {
   # Do not inherit the runner's environment into the test identity.
-  $process = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Credential $credential -WorkingDirectory 'C:\' -UseNewEnvironment -ArgumentList '-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded -WindowStyle Hidden -PassThru
+  $process = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Credential $credential -WorkingDirectory 'C:\' -UseNewEnvironment -ArgumentList '-NoProfile', '-NonInteractive', '-File', $probe -WindowStyle Hidden -PassThru
 } catch {
-  Write-Error "Could not launch the isolated identity: $($_.Exception.GetType().FullName); Win32 error $($_.Exception.NativeErrorCode)."
+  Write-Error "Could not launch the isolated identity: $($_.Exception.Message)"
   throw
 }
 if (-not $process.WaitForExit(30000)) { throw 'Second-account test timed out.' }
