@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { loadPairing } from '../src/bridge.mjs';
@@ -61,4 +61,30 @@ test('Windows private state allows an ordinary review but rejects readable files
     grant('S-1-5-11', unsafe.parent, '(M)');
     assert.throws(() => prepareDataDirectory(unsafe.state), /permissions are unsafe/);
   } finally { rmSync(unsafe.parent, { recursive: true, force: true }); }
+});
+
+test('Windows refuses an existing unsafe empty store and replaceable or linked ancestors', { skip: process.platform !== 'win32' }, () => {
+  const { parent, state } = fixture();
+  try {
+    mkdirSync(state);
+    grant('S-1-5-11', state, '(M)');
+    assert.throws(() => prepareDataDirectory(state), /permissions are unsafe/);
+  } finally { rmSync(parent, { recursive: true, force: true }); }
+
+  const unsafe = fixture();
+  try {
+    const intermediate = join(unsafe.parent, 'intermediate');
+    mkdirSync(intermediate);
+    grant('S-1-5-11', unsafe.parent, '(DC)');
+    assert.throws(() => prepareDataDirectory(join(intermediate, 'state')), /permissions are unsafe/);
+  } finally { rmSync(unsafe.parent, { recursive: true, force: true }); }
+
+  const linked = fixture();
+  try {
+    const target = join(linked.parent, 'target');
+    mkdirSync(target);
+    symlinkSync(target, join(linked.parent, 'link'), 'junction');
+    mkdirSync(join(linked.parent, 'link', 'intermediate'));
+    assert.throws(() => prepareDataDirectory(join(linked.parent, 'link', 'intermediate', 'state')), /permissions are unsafe/);
+  } finally { rmSync(linked.parent, { recursive: true, force: true }); }
 });

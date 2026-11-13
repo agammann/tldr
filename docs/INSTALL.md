@@ -18,17 +18,15 @@ pnpm --version
 
 The first version should be 24 or later; the second should be `11.19.0`. Reopen your terminal after installation if it does not recognize the commands. Follow the [pnpm installation documentation](https://pnpm.io/installation) if a global install is unavailable. If PowerShell blocks a `.ps1` shim, use `npm.cmd` or `pnpm.cmd` instead of changing the execution policy.
 
-Get the repository:
+Get the current repository source for the instructions on this page:
 
 ```sh
-git clone --branch v1.0.1 https://github.com/agammann/tldr.git
+git clone https://github.com/agammann/tldr.git
 cd tldr
 pnpm install --frozen-lockfile
 ```
 
-Alternatively, [download the v1 source ZIP](https://github.com/agammann/tldr/releases/tag/v1.0.1), extract it, and open a terminal in the folder containing `package.json`. Run `pnpm install --frozen-lockfile` there. The v1 source ZIP extracts to `tldr-1.0.1`; use that actual folder name in every path below.
-
-For the release ZIP, verify `SHA256SUMS` first. In PowerShell use `Get-FileHash -Algorithm SHA256 .\tldr_1.0.1_source.zip`; on Linux use `sha256sum tldr_1.0.1_source.zip`, and on macOS use `shasum -a 256 tldr_1.0.1_source.zip`. Compare the complete hash with the source ZIP's line in `SHA256SUMS`. You can verify the separate extension ZIP against its own line in the same file.
+The published [v1.0.2 release](https://github.com/agammann/tldr/releases/tag/v1.0.2) predates this Windows storage change. Its source and extension use `.local` on Windows; use the instructions bundled with that release. This checkout does not imply a new published release.
 
 There is no service build step. Optional check: `pnpm test` should finish with zero failures. It does not test your assistant's connection or install the extension.
 
@@ -135,7 +133,7 @@ For version 1.0.1, update the local MCP source and the unpacked extension togeth
 
 ### Windows private-state migration
 
-The Windows default is now `%LOCALAPPDATA%\TermsTLDR`. The MCP verifies that its parent cannot be changed by another account and that the state directory and any existing `pairing.json` or `history.json` grant access only to your account, SYSTEM and Administrators. It refuses an unsafe directory containing state before reading it; a new or empty directory is protected before a pairing token or review is saved. An explicitly configured directory also needs a private parent. If this check fails, choose a private per-user location and inspect its permissions; do not copy an old pairing file into it.
+The Windows default in this checkout is `%LOCALAPPDATA%\TermsTLDR`. The MCP checks the parent and its ancestors for unsafe ownership, replacement rights and reparse points, and checks that the state directory and any existing `pairing.json` or `history.json` grant access only to your account, SYSTEM and Administrators. A newly created directory is protected before state is saved; an existing directory with unsafe permissions is rejected, even when empty. It does not repair existing unsafe stores, because another account could already have an open handle. An explicitly configured directory needs a private parent and safe ancestors. These checks conservatively reject some configurations and assume your account, SYSTEM, Administrators and Windows TrustedInstaller are trusted; they cannot protect against those identities, previously exposed secrets or pre-existing access to the selected store. If a check fails, choose a new private per-user location and inspect its permissions; do not copy an old pairing file into it.
 
 For an older checkout with `.local` state, stop all tldr MCP sessions. Treat the old pairing as potentially exposed if that directory was readable by other accounts. Start the updated MCP without `TLDR_DATA_DIR` to create a new private pairing, choose **Forget connection** in the extension, and import the new `%LOCALAPPDATA%\TermsTLDR\pairing.json`. If you need past comparisons, inspect the old `history.json` and its permissions, then copy only that file into the new private directory while the MCP is stopped. Remove access for other accounts on the copied file before reconnecting; the MCP will refuse to read it otherwise. The old source-folder data is not moved or deleted automatically. A private copy cannot undo any earlier disclosure.
 

@@ -1,6 +1,6 @@
 {
   "name": "tldr-mcp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "repository": {
@@ -31,13 +31,13 @@
     "package:release": "node scripts/package-release.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "ipaddr.js": "^2.2.0",
-    "linkedom": "^0.18.12",
+    "linkedom": "^0.18.15",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "playwright": "1.63.0"
+    "playwright": "1.65.0"
   },
   "license": "MIT"
 }

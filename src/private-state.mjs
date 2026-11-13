@@ -33,6 +33,22 @@ if ($mode -eq 'parent') {
       throw 'State parent is writable by another account.'
     }
   }
+  # A protected immediate parent is insufficient if another account can
+  # replace it through an ancestor. Ignore inherit-only ACEs on the ancestor
+  # itself, and trust the Windows servicing owner used on system roots.
+  $trustedInstaller = (New-Object System.Security.Principal.NTAccount('NT SERVICE', 'TrustedInstaller')).Translate([System.Security.Principal.SecurityIdentifier]).Value
+  $ancestor = $entry
+  while ($null -ne $ancestor) {
+    if (($ancestor.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'State ancestry contains a reparse point.' }
+    $ancestorAcl = $ancestor.GetAccessControl()
+    if ($ancestorAcl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -notin ($allowed + $trustedInstaller)) { throw 'State ancestor is owned by another account.' }
+    foreach ($rule in $ancestorAcl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+      if ($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Value -notin ($allowed + $trustedInstaller) -and
+          (($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::InheritOnly) -eq 0) -and
+          (([int]$rule.FileSystemRights -band 0xD0040) -ne 0)) { throw 'State ancestor can be replaced by another account.' }
+    }
+    $ancestor = $ancestor.Parent
+  }
 } else {
   if (($mode -eq 'file' -and $owner -notin $allowed) -or
       ($mode -ne 'file' -and $owner -ne $current)) { throw 'Private state is owned by another account.' }
@@ -92,18 +108,16 @@ export function prepareDataDirectory(directory) {
   const parent = dirname(selected);
   ordinaryDirectory(parent);
   checkWindowsAcl(parent, 'parent');
-  try { mkdirSync(selected, { mode: 0o700 }); }
+  let created = false;
+  try { mkdirSync(selected, { mode: 0o700 }); created = true; }
   catch (error) { if (error.code !== 'EEXIST') throw error; }
   ordinaryDirectory(selected);
   try { checkWindowsAcl(selected, 'state'); }
   catch (error) {
-    if (readdirSync(selected).length) throw error;
-    try { protectEmptyDirectory(selected); }
-    catch (protectError) {
-      // Another session may have protected the empty directory and written its
-      // pairing while this one was starting. Accept only the verified ACL.
-      checkWindowsAcl(selected, 'state');
-    }
+    // Never repair an existing unsafe directory: another account could have
+    // opened it before its ACL was tightened. Retry concurrent starts instead.
+    if (!created) throw error;
+    protectEmptyDirectory(selected);
   }
   assertPrivateStateFile(selected, 'pairing.json');
   assertPrivateStateFile(selected, 'history.json');
