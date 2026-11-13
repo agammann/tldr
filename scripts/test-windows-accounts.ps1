@@ -26,7 +26,14 @@ catch [System.UnauthorizedAccessException] { }
 exit 0
 "@
 $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($script))
-$process = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Credential $credential -WorkingDirectory 'C:\' -ArgumentList '-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded -WindowStyle Hidden -PassThru
+try {
+  # Do not inherit the runner's environment into the test identity.
+  $process = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Credential $credential -WorkingDirectory 'C:\' -UseNewEnvironment -ArgumentList '-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded -WindowStyle Hidden -PassThru
+} catch {
+  Write-Error "Could not launch the isolated identity: $($_.Exception.GetType().FullName); Win32 error $($_.Exception.NativeErrorCode)."
+  throw
+}
 if (-not $process.WaitForExit(30000)) { throw 'Second-account test timed out.' }
 if ($process.ExitCode -ne 0) { throw "Second-account isolation test failed with exit code $($process.ExitCode)." }
 Write-Output 'A separate non-administrator account read the control but could neither read nor write the synthetic private state.'
+
