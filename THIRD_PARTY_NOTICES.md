@@ -4,10 +4,10 @@ The source and extension archives contain original project files, not installed 
 
 | Direct dependency | Locked version | License |
 | :--- | :--- | :--- |
-| `@modelcontextprotocol/sdk` | 1.32.1 | MIT |
+| `@modelcontextprotocol/sdk` | 1.32.2 | MIT |
 | `ipaddr.js` | 2.5.0 | MIT |
-| `linkedom` | 0.18.13 | ISC |
-| `zod` | 4.6.5 | MIT |
-| `playwright` | 1.63.0 | Apache-2.0 |
+| `linkedom` | 0.18.15 | ISC |
+| `zod` | 4.6.7 | MIT |
+| `playwright` | 1.65.0 | Apache-2.0 |
 
 The dependency lockfile also records transitive packages. Their licenses remain in the installed packages.

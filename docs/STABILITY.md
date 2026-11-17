@@ -1,6 +1,6 @@
 # tldr v1
 
-The supported delivery is a Node.js 24 local stdio MCP service with the matching 1.0.2 unpacked Chrome or Edge extension. The service returns source clauses, topic navigation and exact text differences. Your connected assistant writes the explanation; citations help inspect it but do not guarantee its meaning.
+The supported delivery is a Node.js 24 local stdio MCP service with the matching 1.0.3 unpacked Chrome or Edge extension. The service returns source clauses, topic navigation and exact text differences. Your connected assistant writes the explanation. Read the cited clauses to verify amounts, conditions and exceptions.
 
 Version 1.0.1 adds authenticated encryption to the loopback bridge so an unrelated listener cannot receive a reusable pairing credential, read captured text or supply a forged shared-session capture. Both components must be upgraded together. Existing pairing file syntax remains supported. See [upgrade and rotation](INSTALL.md#security-update-and-pairing-rotation), including the historical-exposure limit.
 
@@ -12,7 +12,7 @@ The first complete review establishes a baseline for the exact captured URL. Sel
 
 The optional website review uses the visitor's own OpenAI key and API billing with GPT-5.4. It sends all supplied text through the server to that fixed provider with storage disabled. The app does not persist the key or review. Quotes and segment coverage are checked, while interpretation still needs human inspection. Cancel stops the page waiting and preserves its draft; it cannot guarantee a provider request already submitted incurred no cost. The local MCP does not require this key.
 
-Use the versioned source download and verify `SHA256SUMS` before `pnpm install --frozen-lockfile`. The matching extension is included in the source ZIP and also supplied separately. Stop all service sessions before backing up or replacing `.local`; see [installation and recovery](INSTALL.md). These files contain private pairing credentials and plaintext review history. The latest browser capture and paginated reviews disappear after process exit and need a fresh capture/review. Malformed saved history is preserved instead of silently resetting the comparison.
+Use the versioned source download and verify `SHA256SUMS` before `pnpm install --frozen-lockfile`. The matching extension is included in the source ZIP and also supplied separately. Stop all service sessions before backing up or replacing the configured private directory. Windows uses `%LOCALAPPDATA%\TermsTLDR`, macOS/Linux use the checkout's `.local`, and `TLDR_DATA_DIR` can select another private location. See [installation and recovery](INSTALL.md). These files contain private pairing credentials and plaintext review history. The latest browser capture and paginated reviews disappear after process exit and need a fresh capture/review. Malformed saved history is preserved instead of silently resetting the comparison.
 
 Supported scope covers readable captured text and public static HTTPS HTML/text retrieval, explicit user capture, source paging, complete baseline comparisons, and direct old/new text comparison. PDF/OCR, inaccessible frames, automatic signing, continuous monitoring and universal legal accuracy are outside v1. Never infer that a missing topic is absent from the complete agreement.
 

@@ -48,12 +48,18 @@ test('Windows private state allows an ordinary review but rejects readable files
       throw error;
     }
     assert.match(readFileSync(join(state, 'history.json'), 'utf8'), /fictional plan/);
+    const originalPairing = readFileSync(join(state, 'pairing.json'));
+    const originalHistory = readFileSync(join(state, 'history.json'));
 
     grant('S-1-5-11', join(state, 'pairing.json'), '(R)');
     assert.throws(() => prepareDataDirectory(state), /permissions are unsafe/);
+    assert.deepEqual(readFileSync(join(state, 'pairing.json')), originalPairing);
+    assert.deepEqual(readFileSync(join(state, 'history.json')), originalHistory);
     execFileSync('icacls.exe', [join(state, 'pairing.json'), '/remove', '*S-1-5-11'], { stdio: 'pipe', windowsHide: true });
     grant('S-1-5-11', join(state, 'history.json'), '(R)');
     assert.throws(() => prepareDataDirectory(state), /permissions are unsafe/);
+    assert.deepEqual(readFileSync(join(state, 'pairing.json')), originalPairing);
+    assert.deepEqual(readFileSync(join(state, 'history.json')), originalHistory);
   } finally { rmSync(parent, { recursive: true, force: true }); }
 
   const unsafe = fixture();

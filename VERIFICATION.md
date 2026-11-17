@@ -2,7 +2,21 @@
 
 [Back to the README](README.md) · [Detailed integration history](docs/REAL_WORLD_VALIDATION.md)
 
-## Current evidence
+## November 17, 2026 release preparation
+
+The starting source was `9a6abfc7ba840ad2a6e1e906b5c932eb3e69e113`. Its existing Windows private-state work was newer than the published 1.0.2 packages. A fresh frozen installation used Node 24.22.1 and pnpm 11.19.0. The installed MCP SDK 1.32.2, ipaddr.js 2.5.0, linkedom 0.18.15, zod 4.6.7 and Playwright 1.65.0 match the updated notices. All 30 Node tests, the website build and the full dependency audit passed.
+
+Version 1.0.3 aligns the service, extension and installation links. The Windows state implementation already present in source is preserved. The existing permission test now also checks that rejected access leaves both saved pairing and history bytes unchanged. The desktop test run used only protected temporary directories. The separate-account check belongs to the disposable GitHub runner and was left for CI.
+
+The actual extension loaded in Chromium 158.0.8127.18 with matching service and extension versions. Controlled captures verified the first baseline, a $12 to $24 change, excluded form values, discovered policy links, partial and empty captures, wrong pairing and disconnected guidance. The genuine SDK consumer exercised all five tools, exact source and removed clauses, four pages containing 80 clauses, process restart and a stopped-state backup restore. These checks used fictional text and fresh private state. Existing user pairing and history were untouched.
+
+The built website passed eight controlled browser groups, including a new check that ties the download and clone command to package metadata and checks the Windows pairing guidance. That installation check failed against the older built page before the HTML correction. The remaining groups cover the example, consent, cancellation, exact quotes, invalid replies, clearing, reload and private browser storage. Captured page and console errors were empty, and 1440, 390 and 320 pixel layouts had no horizontal overflow. Hosted replies were controlled fixtures and made no model request. Provider routing and review instructions are unchanged.
+
+Independent stdio verification of the candidate retrieved all five tools and the prompt, eight supplied clauses, an exact price revision and 90 unique clauses across four pages. Browser verification in the original local preview tab confirmed matching 1.0.3 ZIP, checksum, tag, migration and clone links, plus the Chrome or Edge wording and exact fictional source navigation. The existing published 1.0.2 download was separately verified and exercised with its own Edge 157 consumer. Those old package results are preserved separately from this candidate.
+
+The website source and existing static Site share the same review runtime. Their installation HTML differed. Website publication waits for the matching source and extension release to pass exact CI and actual download acceptance. The earlier provider and native-host records below retain their original dates and scope.
+
+## Historical October 2, 2026 evidence
 
 On October 2, 2026 UTC, MCP **0.1.4** and extension **0.1.3** passed a fresh Windows review with Node 24.19.0 and pnpm 11.19.0:
 
