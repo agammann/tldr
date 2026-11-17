@@ -18,15 +18,15 @@ pnpm --version
 
 The first version should be 24 or later; the second should be `11.19.0`. Reopen your terminal after installation if it does not recognize the commands. Follow the [pnpm installation documentation](https://pnpm.io/installation) if a global install is unavailable. If PowerShell blocks a `.ps1` shim, use `npm.cmd` or `pnpm.cmd` instead of changing the execution policy.
 
-Get the current repository source for the instructions on this page:
+Get the matching release source for the instructions on this page.
 
 ```sh
-git clone https://github.com/agammann/tldr.git
+git clone --branch v1.0.3 https://github.com/agammann/tldr.git
 cd tldr
 pnpm install --frozen-lockfile
 ```
 
-The published [v1.0.2 release](https://github.com/agammann/tldr/releases/tag/v1.0.2) predates this Windows storage change. Its source and extension use `.local` on Windows; use the instructions bundled with that release. This checkout does not imply a new published release.
+The [v1.0.3 release](https://github.com/agammann/tldr/releases/tag/v1.0.3) includes the Windows private-state change. Versions through 1.0.2 use `.local` on Windows. Follow the migration section below when updating. A release-tag checkout is detached from the development branch.
 
 There is no service build step. Optional check: `pnpm test` should finish with zero failures. It does not test your assistant's connection or install the extension.
 
@@ -112,14 +112,15 @@ You can also review pasted terms or a public URL without the extension. See [too
 
 ## Updating an existing installation
 
-In a Git checkout, run:
+Stop all tldr MCP sessions and preserve a private backup before updating. In a Git checkout, inspect `git status` and keep any local changes. Fetch the published tags and select the intended release.
 
 ```sh
-git pull --ff-only
+git fetch origin --tags
+git switch --detach v1.0.3
 pnpm install --frozen-lockfile
 ```
 
-If Git reports local changes or divergence, keep those changes and resolve the conflict before continuing. For a ZIP installation, extract a fresh copy and update the assistant and extension paths. On Windows, the new per-user data directory is independent of the source checkout; follow the migration steps below for older `.local` state. On macOS/Linux, stop all tldr MCP connections before copying a private `.local` folder into a new project folder.
+Use the new published tag when updating beyond 1.0.3. If you intentionally track a development branch, use `git pull --ff-only` on that branch instead. Resolve local changes or divergence before continuing. For a ZIP installation, extract a fresh copy and update the assistant and extension paths. Windows uses the per-user data directory described below. Follow the migration steps for older `.local` state. On macOS/Linux, stop all tldr MCP connections before copying a private `.local` folder into a new project folder.
 
 Reload the unpacked extension in the extensions manager, reconnect all tldr MCP sessions, and capture again. State in the configured directory remains available across source updates.
 

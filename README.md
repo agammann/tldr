@@ -18,14 +18,14 @@ Coverage and exact-quotation checks detect missing segments and mismatched quote
 
 ## Get started
 
-The instructions below describe this source checkout. The published [v1.0.2 release](https://github.com/agammann/tldr/releases/tag/v1.0.2) predates the Windows private-state change and uses the checkout's `.local` directory on Windows; follow the documentation included in that release when installing it. No new release is implied by this checkout. See the [v1 support and verification guide](docs/STABILITY.md).
+These instructions describe the matching 1.0.3 MCP and extension. Use the [v1.0.3 release](https://github.com/agammann/tldr/releases/tag/v1.0.3) or the pinned checkout below. Versions through 1.0.2 used the checkout's `.local` directory on Windows. Read the [Windows migration instructions](docs/INSTALL.md#windows-private-state-migration) before updating an older installation. See the [v1 support and verification guide](docs/STABILITY.md).
 
 You need **Node.js 24 or later**, **pnpm 11.19.0**, **Chrome or Edge**, and an assistant that supports **local stdio MCP servers**. Codex with Chrome has been verified. Other assistants may use different configuration formats.
 
 1. Get the project and install its dependencies:
 
    ```sh
-   git clone https://github.com/agammann/tldr.git
+   git clone --branch v1.0.3 https://github.com/agammann/tldr.git
    cd tldr
    pnpm install --frozen-lockfile
    ```
@@ -72,6 +72,6 @@ Read [privacy and limitations](docs/PRIVACY_AND_LIMITS.md) for storage, deletion
 
 ## Project status
 
-The published MCP and extension are **1.0.2**; this checkout contains later unreleased changes. The public repository is [agammann/tldr](https://github.com/agammann/tldr). The website retains its original `terms-tldr` address. See [updating an installation](docs/INSTALL.md#updating-an-existing-installation) and the Windows migration instructions before changing versions.
+The MCP and matching extension are **1.0.3**. The public repository is [agammann/tldr](https://github.com/agammann/tldr). The website retains its original `terms-tldr` address. See [updating an installation](docs/INSTALL.md#updating-an-existing-installation) and the Windows migration instructions before changing versions.
 
 The project source is [MIT licensed](LICENSE). Dependency licenses remain with their respective authors; see [third-party notices](THIRD_PARTY_NOTICES.md). The package's `private` flag prevents accidental npm publication; it does not describe GitHub visibility.

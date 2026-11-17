@@ -1,11 +1,12 @@
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import worker from '../website/dist/server/index.js';
 import { splitTerms } from '../website/review-contract.mjs';
+const version = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version;
 
 const output = new URL('../test-results/website/', import.meta.url);
 await mkdir(output, { recursive: true });
@@ -34,6 +35,11 @@ try {
   assert.match(await page.title(), /tldr/i);
   await page.locator('h1').waitFor({ state: 'visible' });
   assert((await page.locator('h1').innerText()).trim());
+  assert.equal(await page.locator('#download-project').count(), 1);
+  assert.equal(await page.locator('#download-project').getAttribute('href'), `https://github.com/agammann/tldr/releases/download/v${version}/tldr_${version}_source.zip`);
+  assert.match(await page.locator('#install-command').innerText(), new RegExp(`git clone --branch v${version.replaceAll('.', '\\.')} `));
+  assert.match(await page.locator('#install').innerText(), /%LOCALAPPDATA%\\TermsTLDR/);
+  report.checks.matchingReleaseInstallation = true;
   await page.locator('[data-view="changes"]').click();
   assert.match(await page.locator('#review-panel').innerText(), /price doubled/);
   await page.locator('#review-panel .cite').first().click();

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+- Deliver the Windows per-user private-state location and permission checks already present in source. Keep older stores untouched and document migration and pairing rotation.
+- Align the MCP, unpacked extension and website installation with one verified release tag and its matching Windows pairing instructions.
+- Correct dependency notices, private backup locations and custom bridge-port guidance while preserving dated verification records.
+
 ## 1.0.2
 
 - Update the MCP SDK, linkedom, zod, and their resolved dependencies.
